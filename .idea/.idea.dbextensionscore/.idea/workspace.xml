@@ -4,8 +4,14 @@
     <list default="true" id="6c173621-5885-4135-91af-0a86190f849e" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/.idea.dbextensionscore/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.dbextensionscore/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/.idea.dbextensionscore/riderModule.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.dbextensionscore/riderModule.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/DbExtensions/Metadata/Accessors.cs" beforeDir="false" afterPath="$PROJECT_DIR$/DbExtensions/Metadata/Accessors.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/DbExtensions/Metadata/AttributedMetaModel.cs" beforeDir="false" afterPath="$PROJECT_DIR$/DbExtensions/Metadata/AttributedMetaModel.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/DbExtensions.netstd/obj/project.assets.json" beforeDir="false" afterPath="$PROJECT_DIR$/DbExtensions.netstd/obj/project.assets.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bin/Debug/netcoreapp2.0/dbextensionscore.deps.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/bin/Debug/netcoreapp2.0/dbextensionscore.dll" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/bin/Debug/netcoreapp2.0/dbextensionscore.pdb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/dbextensionscore.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/dbextensionscore.csproj" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/obj/dbextensionscore.csproj.nuget.cache" beforeDir="false" afterPath="$PROJECT_DIR$/obj/dbextensionscore.csproj.nuget.cache" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/obj/project.assets.json" beforeDir="false" afterPath="$PROJECT_DIR$/obj/project.assets.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/obj/project.packagespec.json" beforeDir="false" afterPath="$PROJECT_DIR$/obj/project.packagespec.json" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -17,17 +23,18 @@
     <session id="-212484423">
       <usages-collector id="statistics.lifecycle.project">
         <counts>
-          <entry key="project.closed" value="4" />
-          <entry key="project.open.time.0" value="3" />
+          <entry key="project.closed" value="6" />
+          <entry key="project.open.time.0" value="4" />
           <entry key="project.open.time.6" value="1" />
           <entry key="project.open.time.7" value="1" />
-          <entry key="project.opened" value="5" />
+          <entry key="project.opened" value="6" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.open">
         <counts>
           <entry key="cs" value="11" />
           <entry key="csproj" value="3" />
+          <entry key="json" value="1" />
           <entry key="targets" value="3" />
         </counts>
       </usages-collector>
@@ -35,30 +42,33 @@
         <counts>
           <entry key="C#" value="11" />
           <entry key="Csproj" value="3" />
+          <entry key="JSON" value="1" />
           <entry key="MsBuild targets file" value="3" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
           <entry key="cs" value="46" />
-          <entry key="csproj" value="25" />
+          <entry key="csproj" value="33" />
+          <entry key="json" value="2" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
           <entry key="C#" value="46" />
-          <entry key="Csproj" value="25" />
+          <entry key="Csproj" value="33" />
+          <entry key="JSON" value="2" />
         </counts>
       </usages-collector>
     </session>
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/dbextensionscore.csproj">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="54">
-              <caret line="3" column="35" selection-start-line="3" selection-start-column="35" selection-end-line="3" selection-end-column="35" />
+            <state relative-caret-position="198">
+              <caret line="11" lean-forward="true" selection-start-line="11" selection-end-line="11" />
             </state>
           </provider>
         </entry>
@@ -240,7 +250,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/DbExtensions/Metadata/Accessors.cs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="18">
+            <state>
               <caret line="31" selection-start-line="31" selection-end-line="31" />
               <folding>
                 <marker date="1535430080616" expanded="true" signature="0:592" ph="/* Copyright 2016-2018 Max Toro Q. ... */" />
@@ -260,10 +270,10 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/DbExtensions/Metadata/AttributedMetaModel.cs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="199">
+            <state>
               <caret line="826" selection-start-line="826" selection-end-line="826" />
               <folding>
                 <marker date="1535430089164" expanded="true" signature="0:592" ph="/* Copyright 2016-2018 Max Toro Q. ... */" />
@@ -434,11 +444,21 @@
           </provider>
         </entry>
       </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/DbExtensions.netstd/obj/project.assets.json">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="14868">
+              <caret line="826" column="21" selection-start-line="826" selection-start-column="21" selection-end-line="826" selection-end-column="21" />
+            </state>
+          </provider>
+        </entry>
+      </file>
     </leaf>
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
       <find>DbProviderFactories</find>
+      <find>1.0.0</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -446,6 +466,7 @@
   </component>
   <component name="HighlightingSettingsPerFile">
     <setting file="file://$PROJECT_DIR$/DbExtensions/Metadata/AttributedMetaModel.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/DbExtensions/Attributes.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/DbExtensions/Database.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/DbExtensions/Metadata/Accessors.cs" root0="FORCE_HIGHLIGHTING" />
   </component>
@@ -453,9 +474,10 @@
     <option name="CHANGED_PATHS">
       <list>
         <option value="$PROJECT_DIR$/DbExtensions/Database.cs" />
-        <option value="$PROJECT_DIR$/dbextensionscore.csproj" />
         <option value="$PROJECT_DIR$/DbExtensions/Metadata/Accessors.cs" />
         <option value="$PROJECT_DIR$/DbExtensions/Metadata/AttributedMetaModel.cs" />
+        <option value="$PROJECT_DIR$/DbExtensions.netstd/obj/project.assets.json" />
+        <option value="$PROJECT_DIR$/dbextensionscore.csproj" />
       </list>
     </option>
   </component>
@@ -524,12 +546,13 @@
       <workItem from="1535422766917" duration="752000" />
       <workItem from="1535423523496" duration="3000" />
       <workItem from="1535429561715" duration="362000" />
-      <workItem from="1535429964007" duration="126000" />
+      <workItem from="1535429964007" duration="700000" />
+      <workItem from="1535430919889" duration="66000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="1555000" />
+    <option name="totallyTimeSpent" value="2195000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -544,7 +567,7 @@
     <frame x="-8" y="22" width="1936" height="1066" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.26066098" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.26332623" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
@@ -606,8 +629,8 @@
     <entry file="file://$PROJECT_DIR$/DbExtensions.SqlSet/Properties/AssemblyInfo.cs" />
     <entry file="file://$PROJECT_DIR$/dbextensionscore.csproj">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="54">
-          <caret line="3" column="35" selection-start-line="3" selection-start-column="35" selection-end-line="3" selection-end-column="35" />
+        <state relative-caret-position="198">
+          <caret line="11" lean-forward="true" selection-start-line="11" selection-end-line="11" />
         </state>
       </provider>
     </entry>
@@ -785,7 +808,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/DbExtensions/Metadata/Accessors.cs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="18">
+        <state>
           <caret line="31" selection-start-line="31" selection-end-line="31" />
           <folding>
             <marker date="1535430080616" expanded="true" signature="0:592" ph="/* Copyright 2016-2018 Max Toro Q. ... */" />
@@ -806,7 +829,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/DbExtensions/Metadata/AttributedMetaModel.cs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="199">
+        <state>
           <caret line="826" selection-start-line="826" selection-end-line="826" />
           <folding>
             <marker date="1535430089164" expanded="true" signature="0:592" ph="/* Copyright 2016-2018 Max Toro Q. ... */" />
@@ -973,6 +996,13 @@
             <marker date="1535430089164" expanded="true" signature="29103:29189" ph="/// Compares two MemberInfos for 'same-ness'. ... " />
             <marker date="1535430089164" expanded="true" signature="29264:29356" ph="{...}" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/DbExtensions.netstd/obj/project.assets.json">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="14868">
+          <caret line="826" column="21" selection-start-line="826" selection-start-column="21" selection-end-line="826" selection-end-column="21" />
         </state>
       </provider>
     </entry>

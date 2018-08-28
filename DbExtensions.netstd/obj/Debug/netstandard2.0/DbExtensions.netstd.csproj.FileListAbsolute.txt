@@ -1,0 +1,6 @@
+C:\temp\code\DbExtensions\src\DbExtensions.netstd\bin\Debug\netstandard2.0\DbExtensions.deps.json
+C:\temp\code\DbExtensions\src\DbExtensions.netstd\bin\Debug\netstandard2.0\DbExtensions.dll
+C:\temp\code\DbExtensions\src\DbExtensions.netstd\bin\Debug\netstandard2.0\DbExtensions.pdb
+C:\temp\code\DbExtensions\src\DbExtensions.netstd\obj\Debug\netstandard2.0\DbExtensions.netstd.csproj.CoreCompileInputs.cache
+C:\temp\code\DbExtensions\src\DbExtensions.netstd\obj\Debug\netstandard2.0\DbExtensions.dll
+C:\temp\code\DbExtensions\src\DbExtensions.netstd\obj\Debug\netstandard2.0\DbExtensions.pdb

@@ -1,0 +1,2565 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>DbExtensions</name>
+    </assembly>
+    <members>
+        <member name="T:DbExtensions.Database">
+            <summary>
+            Provides simple data access using <see cref="T:DbExtensions.SqlSet"/>, <see cref="T:DbExtensions.SqlBuilder"/> and <see cref="T:DbExtensions.SqlTable`1"/>.
+            </summary>
+        </member>
+        <member name="P:DbExtensions.Database.Connection">
+            <summary>
+            Gets the connection to associate with new commands.
+            </summary>
+        </member>
+        <member name="P:DbExtensions.Database.Transaction">
+            <summary>
+            Gets or sets a transaction to associate with new commands.
+            </summary>		
+        </member>
+        <member name="P:DbExtensions.Database.Configuration">
+            <summary>
+            Provides access to configuration options for this instance. 
+            </summary>
+        </member>
+        <member name="M:DbExtensions.Database.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:DbExtensions.Database"/> class.
+            </summary>
+        </member>
+        <member name="M:DbExtensions.Database.#ctor(System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:DbExtensions.Database"/> class
+            using the provided connection string.
+            </summary>
+            <param name="connectionString">The connection string.</param>
+        </member>
+        <member name="M:DbExtensions.Database.#ctor(System.String,System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:DbExtensions.Database"/> class
+            using the provided connection string and provider's invariant name.
+            </summary>
+            <param name="connectionString">The connection string.</param>
+            <param name="providerInvariantName">The provider's invariant name.</param>
+        </member>
+        <member name="M:DbExtensions.Database.#ctor(System.Data.IDbConnection)">
+            <summary>
+            Initializes a new instance of the <see cref="T:DbExtensions.Database"/> class
+            using the provided connection.
+            </summary>
+            <param name="connection">The connection.</param>
+        </member>
+        <member name="M:DbExtensions.Database.EnsureConnectionOpen">
+            <summary>
+            Opens <see cref="P:DbExtensions.Database.Connection"/> (if it's not open) and returns an <see cref="T:System.IDisposable"/> object
+            you can use to close it (if it wasn't open).
+            </summary>
+            <returns>An <see cref="T:System.IDisposable"/> object to close the connection.</returns>
+            <remarks>
+            Use this method with the <c>using</c> statement in C# or Visual Basic to ensure that a block of code
+            is always executed with an open connection.
+            </remarks>
+            <example>
+            <code>
+            using (db.EnsureConnectionOpen()) {
+              // Execute commands.
+            }
+            </code>
+            </example>
+        </member>
+        <member name="M:DbExtensions.Database.EnsureInTransaction">
+            <summary>
+            Returns a virtual transaction that you can use to ensure a code block is always executed in 
+            a transaction, new or existing.
+            </summary>
+            <returns>
+            A virtual transaction you can use to ensure a code block is always executed in 
+            a transaction, new or existing.
+            </returns>
+            <remarks>
+            This method returns a virtual transaction that wraps an existing or new transaction.
+            If <see cref="P:System.Transactions.Transaction.Current"/> is not null, this method creates a
+            new <see cref="T:System.Transactions.TransactionScope"/> and returns an <see cref="T:System.Data.IDbTransaction"/>
+            object that wraps it, and by calling <see cref="M:System.Data.IDbTransaction.Commit"/> on this object it will 
+            then call <see cref="M:System.Transactions.TransactionScope.Complete"/> on the <see cref="T:System.Transactions.TransactionScope"/>.
+            If <see cref="P:System.Transactions.Transaction.Current"/> is null, this methods begins a new
+            <see cref="T:System.Data.IDbTransaction"/>, or uses an existing transaction created by a previous call to this method, and returns 
+            an <see cref="T:System.Data.IDbTransaction"/> object that wraps it, and by calling <see cref="M:System.Data.IDbTransaction.Commit"/> 
+            on this object it will then call <see cref="M:System.Data.IDbTransaction.Commit"/> on the wrapped transaction if the 
+            transaction was just created, or do nothing if it was previously created.
+            <para>
+            Calls to this method can be nested, like in the following example:
+            </para>
+            <code>
+            void DoSomething() {
+            
+               using (var tx = this.db.EnsureInTransaction()) {
+                  
+                  // Execute commands
+            
+                  DoSomethingElse();
+            
+                  tx.Commit();
+               }
+            }
+            
+            void DoSomethingElse() { 
+               
+               using (var tx = this.db.EnsureInTransaction()) {
+                  
+                  // Execute commands
+            
+                  tx.Commit();
+               }
+            }
+            </code>
+            </remarks>
+        </member>
+        <member name="M:DbExtensions.Database.EnsureInTransaction(System.Data.IsolationLevel)">
+            <inheritdoc cref="M:DbExtensions.Database.EnsureInTransaction"/>
+            <param name="isolationLevel">
+            Specifies the isolation level for the transaction. This parameter is ignored when using
+            an existing transaction.
+            </param>
+        </member>
+        <member name="M:DbExtensions.Database.Execute(DbExtensions.SqlBuilder,System.Int32,System.Boolean)">
+            <summary>
+            Executes the <paramref name="nonQuery"/> command. Optionally uses a transaction and validates
+            affected records value before committing.
+            </summary>
+            <param name="nonQuery">The non-query command to execute.</param>
+            <param name="affect">The number of records the command should affect. This value is ignored if less or equal to -1.</param>
+            <param name="exact">true if the number of affected records should exactly match <paramref name="affect"/>; false if a lower number is acceptable.</param>
+            <returns>The number of affected records.</returns>
+            <exception cref="T:DbExtensions.ChangeConflictException">The number of affected records is not equal to <paramref name="affect"/>.</exception>
+        </member>
+        <member name="M:DbExtensions.Database.Execute(System.String,System.Object[])">
+            <summary>
+            Creates and executes an <see cref="T:System.Data.IDbCommand"/> using the provided <paramref name="commandText"/> as a composite format string 
+            (as used on <see cref="M:System.String.Format(System.String,System.Object[])"/>), 
+            where the format items are replaced with appropiate parameter names, and the objects in the
+            <paramref name="parameters"/> array are added to the command's <see cref="P:System.Data.IDbCommand.Parameters"/> collection.
+            </summary>
+            <param name="commandText">The command text.</param>
+            <param name="parameters">The parameters to apply to the command text.</param>
+            <returns>The number of affected records.</returns>
+        </member>
+        <member name="M:DbExtensions.Database.Map``1(DbExtensions.SqlBuilder,System.Func{System.Data.IDataRecord,``0})">
+            <summary>
+            Maps the results of the <paramref name="query"/> to <typeparamref name="TResult"/> objects,
+            using the provided <paramref name="mapper"/> delegate.
+            </summary>
+            <typeparam name="TResult">The type of objects to map the results to.</typeparam>
+            <param name="query">The query.</param>
+            <param name="mapper">The delegate for creating <typeparamref name="TResult"/> objects from an <see cref="T:System.Data.IDataRecord"/> object.</param>
+            <returns>The results of the query as <typeparamref name="TResult"/> objects.</returns>
+        </member>
+        <member name="M:DbExtensions.Database.LastInsertId">
+            <summary>
+            Gets the identity value of the last inserted record.
+            </summary>
+            <returns>The identity value of the last inserted record.</returns>
+            <remarks>
+            It is very important to keep the connection open between the last 
+            command and this one, or else you might get the wrong value.
+            </remarks>
+        </member>
+        <member name="M:DbExtensions.Database.CreateCommand(DbExtensions.SqlBuilder)">
+            <summary>
+            Creates and returns an <see cref="T:System.Data.IDbCommand"/> object from the specified <paramref name="sqlBuilder"/>.
+            </summary>
+            <param name="sqlBuilder">The <see cref="T:DbExtensions.SqlBuilder"/> that provides the command's text and parameters.</param>
+            <returns>
+            A new <see cref="T:System.Data.IDbCommand"/> object whose <see cref="P:System.Data.IDbCommand.CommandText"/> property
+            is initialized with the <paramref name="sqlBuilder"/>'s string representation, and whose <see cref="P:System.Data.IDbCommand.Parameters"/>
+            property is initialized with the values from the <see cref="P:DbExtensions.SqlBuilder.ParameterValues"/> property of the <paramref name="sqlBuilder"/> parameter.
+            </returns>
+        </member>
+        <member name="M:DbExtensions.Database.CreateCommand(System.String,System.Object[])">
+            <summary>
+            Creates and returns an <see cref="T:System.Data.IDbCommand"/> object using the provided <paramref name="commandText"/> as a composite format string 
+            (as used on <see cref="M:System.String.Format(System.String,System.Object[])"/>), 
+            where the format items are replaced with appropiate parameter names, and the objects in the
+            <paramref name="parameters"/> array are added to the command's <see cref="P:System.Data.IDbCommand.Parameters"/> collection.
+            </summary>
+            <param name="commandText">The command text.</param>
+            <param name="parameters">
+            The array of parameters to be passed to the command. Note the following 
+            behavior: If the number of objects in the array is less than the highest 
+            number identified in the command string, an exception is thrown. If the 
+            array contains objects that are not referenced in the command string, no 
+            exception is thrown. If a parameter is null, it is converted to DBNull.Value. 
+            </param>
+            <returns>
+            A new <see cref="T:System.Data.IDbCommand"/> object whose <see cref="P:System.Data.IDbCommand.CommandText"/> property
+            is initialized with the <paramref name="commandText"/> parameter, and whose <see cref="P:System.Data.IDbCommand.Parameters"/>
+            property is initialized with the values from the <paramref name="parameters"/> parameter.
+            </returns>
+            <remarks>
+            <see cref="P:DbExtensions.Database.Transaction"/> is associated with all commands created using this method.
+            </remarks>
+        </member>
+        <member name="M:DbExtensions.Database.QuoteIdentifier(System.String)">
+            <summary>
+            Given an unquoted identifier in the correct catalog case, returns the correct quoted form of that identifier,
+            including properly escaping any embedded quotes in the identifier.
+            </summary>
+            <param name="unquotedIdentifier">The original unquoted identifier.</param>
+            <returns>The quoted version of the identifier. Embedded quotes within the identifier are properly escaped.</returns>
+        </member>
+        <member name="M:DbExtensions.Database.Dispose">
+            <summary>
+            Releases all resources used by the current instance of the <see cref="T:DbExtensions.Database"/> class.
+            </summary>
+        </member>
+        <member name="M:DbExtensions.Database.Dispose(System.Boolean)">
+            <summary>
+            Releases the resources used by this <see cref="T:DbExtensions.Database"/> instance.
+            </summary>
+            <param name="disposing">
+            true if this method is being called due to a call to <see cref="M:DbExtensions.Database.Dispose"/>; otherwise, false.
+            </param>
+        </member>
+        <member name="M:DbExtensions.Database.Equals(System.Object)">
+            <exclude/>
+        </member>
+        <member name="M:DbExtensions.Database.GetHashCode">
+            <exclude/>
+        </member>
+        <member name="M:DbExtensions.Database.GetType">
+            <exclude/>
+        </member>
+        <member name="M:DbExtensions.Database.ToString">
+            <exclude/>
+        </member>
+        <member name="M:DbExtensions.Database.Map``1(DbExtensions.SqlBuilder)">
+            <summary>
+            Maps the results of the <paramref name="query"/> to <typeparamref name="TResult"/> objects.
+            The query is deferred-executed.
+            </summary>
+            <typeparam name="TResult">The type of objects to map the results to.</typeparam>
+            <param name="query">The query.</param>
+            <returns>The results of the query as <typeparamref name="TResult"/> objects.</returns>
+        </member>
+        <member name="M:DbExtensions.Database.Map(System.Type,DbExtensions.SqlBuilder)">
+            <summary>
+            Maps the results of the <paramref name="query"/> to objects of type
+            specified by the <paramref name="resultType"/> parameter.
+            The query is deferred-executed.
+            </summary>
+            <param name="resultType">The type of objects to map the results to.</param>
+            <param name="query">The query.</param>
+            <returns>The results of the query as objects of type specified by the <paramref name="resultType"/> parameter.</returns>
+        </member>
+        <member name="M:DbExtensions.Database.From(System.String)">
+            <summary>
+            Creates and returns a new <see cref="T:DbExtensions.SqlSet"/> using the provided table name.
+            </summary>
+            <param name="tableName">The name of the table that will be the source of data for the set.</param>
+            <returns>A new <see cref="T:DbExtensions.SqlSet"/> object.</returns>
+        </member>
+        <member name="M:DbExtensions.Database.From(System.String,System.Type)">
+            <inheritdoc cref="M:DbExtensions.Database.From(System.String)"/>
+            <param name="resultType">The type of objects to map the results to.</param>
+        </member>
+        <member name="M:DbExtensions.Database.From``1(System.String)">
+            <summary>
+            Creates and returns a new <see cref="T:DbExtensions.SqlSet`1"/> using the provided table name.
+            </summary>
+            <typeparam name="TResult">The type of objects to map the results to.</typeparam>
+            <param name="tableName">The name of the table that will be the source of data for the set.</param>
+            <returns>A new <see cref="T:DbExtensions.SqlSet`1"/> object.</returns>
+        </member>
+        <member name="M:DbExtensions.Database.From(DbExtensions.SqlBuilder)">
+            <summary>
+            Creates and returns a new <see cref="T:DbExtensions.SqlSet"/> using the provided defining query.
+            </summary>
+            <param name="definingQuery">The SQL query that will be the source of data for the set.</param>
+            <returns>A new <see cref="T:DbExtensions.SqlSet"/> object.</returns>
+        </member>
+        <member name="M:DbExtensions.Database.From(DbExtensions.SqlBuilder,System.Type)">
+            <inheritdoc cref="M:DbExtensions.Database.From(DbExtensions.SqlBuilder)"/>
+            <param name="resultType">The type of objects to map the results to.</param>
+        </member>
+        <member name="M:DbExtensions.Database.From``1(DbExtensions.SqlBuilder)">
+            <summary>
+            Creates and returns a new <see cref="T:DbExtensions.SqlSet`1"/> using the provided defining query.
+            </summary>
+            <typeparam name="TResult">The type of objects to map the results to.</typeparam>
+            <param name="definingQuery">The SQL query that will be the source of data for the set.</param>
+            <returns>A new <see cref="T:DbExtensions.SqlSet`1"/> object.</returns>
+        </member>
+        <member name="M:DbExtensions.Database.From``1(DbExtensions.SqlBuilder,System.Func{System.Data.IDataRecord,``0})">
+            <summary>
+            Creates and returns a new <see cref="T:DbExtensions.SqlSet`1"/> using the provided defining query and mapper.
+            </summary>
+            <inheritdoc cref="M:DbExtensions.Database.From``1(DbExtensions.SqlBuilder)"/>
+            <param name="mapper">A custom mapper function that creates <typeparamref name="TResult"/> instances from the rows in the set.</param>
+        </member>
+        <member name="M:DbExtensions.Database.Table``1">
+            <summary>
+            Returns the <see cref="T:DbExtensions.SqlTable`1"/> instance for the specified <typeparamref name="TEntity"/>.
+            </summary>
+            <typeparam name="TEntity">The type of the entity.</typeparam>
+            <returns>The <see cref="T:DbExtensions.SqlTable`1"/> instance for <typeparamref name="TEntity"/>.</returns>
+        </member>
+        <member name="M:DbExtensions.Database.Table(System.Type)">
+            <summary>
+            Returns the <see cref="T:DbExtensions.SqlTable"/> instance for the specified <paramref name="entityType"/>.
+            </summary>
+            <param name="entityType">The type of the entity.</param>
+            <returns>The <see cref="T:DbExtensions.SqlTable"/> instance for <paramref name="entityType"/>.</returns>
+        </member>
+        <member name="M:DbExtensions.Database.Map(DbExtensions.SqlBuilder)">
+            <summary>
+            Maps the results of the <paramref name="query"/> to dynamic objects.
+            The query is deferred-executed.
+            </summary>
+            <param name="query">The query.</param>
+            <returns>The results of the query as dynamic objects.</returns>
+        </member>
+        <member name="T:DbExtensions.DatabaseConfiguration">
+            <summary>
+            Holds configuration options that customize the behavior of <see cref="T:DbExtensions.Database"/>.
+            This class cannot be instantiated, to get an instance use the <see cref="P:DbExtensions.Database.Configuration"/> property.
+            </summary>
+        </member>
+        <member name="P:DbExtensions.DatabaseConfiguration.DefaultConnectionString">
+            <summary>
+            The connection string to use as default.
+            </summary>
+        </member>
+        <member name="P:DbExtensions.DatabaseConfiguration.DefaultProviderInvariantName">
+            <summary>
+            The provider's invariant name to use as default.
+            </summary>
+        </member>
+        <member name="P:DbExtensions.DatabaseConfiguration.QuotePrefix">
+            <summary>
+            Gets or sets the beginning character or characters to use when specifying database objects (for example, tables or columns)
+            whose names contain characters such as spaces or reserved tokens.
+            </summary>
+        </member>
+        <member name="P:DbExtensions.DatabaseConfiguration.QuoteSuffix">
+            <summary>
+            Gets or sets the ending character or characters to use when specifying database objects (for example, tables or columns)
+            whose names contain characters such as spaces or reserved tokens.
+            </summary>
+        </member>
+        <member name="P:DbExtensions.DatabaseConfiguration.ParameterNameBuilder">
+            <summary>
+            Specifies a function that prepares a parameter name to be used on <see cref="P:System.Data.IDataParameter.ParameterName"/>.
+            </summary>
+        </member>
+        <member name="P:DbExtensions.DatabaseConfiguration.ParameterPlaceholderBuilder">
+            <summary>
+            Specifies a function that builds a parameter placeholder to be used in SQL statements.
+            </summary>
+        </member>
+        <member name="P:DbExtensions.DatabaseConfiguration.LastInsertIdCommand">
+            <summary>
+            Gets or sets the SQL command that returns the last identity value generated on the database.
+            </summary>
+        </member>
+        <member name="P:DbExtensions.DatabaseConfiguration.Log">
+            <summary>
+            Specifies the destination to write the SQL query or command. 
+            </summary>
+        </member>
+        <member name="P:DbExtensions.DatabaseConfiguration.CommandTimeout">
+            <summary>
+            Specifies a timeout to assign to commands. This setting is ignored if less or equal to -1. The default is -1.
+            </summary>
+        </member>
+        <member name="P:DbExtensions.DatabaseConfiguration.Model">
+            <summary>
+            Gets the <see cref="T:DbExtensions.Metadata.MetaModel"/> on which the mapping is based.
+            </summary>
+        </member>
+        <member name="P:DbExtensions.DatabaseConfiguration.UseVersionMember">
+            <summary>
+            true to include version column check in SQL statements' predicates; otherwise, false. The default is true.
+            </summary>
+        </member>
+        <member name="P:DbExtensions.DatabaseConfiguration.EnableBatchCommands">
+            <summary>
+            true to execute batch commands when possible; otherwise, false. The default is true.
+            </summary>
+            <remarks>
+            This setting affects the behavior of <see cref="M:DbExtensions.SqlTable`1.AddRange(`0[])"/>,
+            <see cref="M:DbExtensions.SqlTable`1.UpdateRange(`0[])"/> and <see cref="M:DbExtensions.SqlTable`1.RemoveRange(`0[])"/>.
+            </remarks>
+        </member>
+        <member name="T:DbExtensions.ChangeConflictException">
+            <summary>
+            An exception that is thrown when a concurrency violation is encountered while saving to the database. A concurrency violation
+            occurs when an unexpected number of rows are affected during save. This is usually because the data in the database has
+            been modified since it was loaded into memory.
+            </summary>
+        </member>
+        <member name="M:DbExtensions.ChangeConflictException.#ctor(System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:DbExtensions.ChangeConflictException"/> class
+            with a specified error message.
+            </summary>
+            <param name="message">The message that describes the error.</param>
+        </member>
+        <member name="T:DbExtensions.Extensions">
+            <summary>
+            Provides extension methods for common ADO.NET objects.
+            </summary>
+        </member>
+        <member name="M:DbExtensions.Extensions.GetBoolean(System.Data.IDataRecord,System.String)">
+            <summary>
+            Gets the value of the specified column as a <see cref="T:System.Boolean"/>.
+            </summary>
+            <inheritdoc cref="M:DbExtensions.Extensions.GetValue(System.Data.IDataRecord,System.String)"/>
+        </member>
+        <member name="M:DbExtensions.Extensions.GetByte(System.Data.IDataRecord,System.String)">
+            <summary>
+            Gets the value of the specified column as a <see cref="T:System.Byte"/>.
+            </summary>
+            <inheritdoc cref="M:DbExtensions.Extensions.GetValue(System.Data.IDataRecord,System.String)"/>
+        </member>
+        <member name="M:DbExtensions.Extensions.GetChar(System.Data.IDataRecord,System.String)">
+            <summary>
+            Gets the value of the specified column as a <see cref="T:System.Char"/>.
+            </summary>
+            <inheritdoc cref="M:DbExtensions.Extensions.GetValue(System.Data.IDataRecord,System.String)"/>
+        </member>
+        <member name="M:DbExtensions.Extensions.GetDateTime(System.Data.IDataRecord,System.String)">
+            <summary>
+            Gets the value of the specified column as a <see cref="T:System.DateTime"/>.
+            </summary>
+            <inheritdoc cref="M:DbExtensions.Extensions.GetValue(System.Data.IDataRecord,System.String)"/>
+        </member>
+        <member name="M:DbExtensions.Extensions.GetDecimal(System.Data.IDataRecord,System.String)">
+            <summary>
+            Gets the value of the specified column as a <see cref="T:System.Decimal"/>.
+            </summary>
+            <inheritdoc cref="M:DbExtensions.Extensions.GetValue(System.Data.IDataRecord,System.String)"/>
+        </member>
+        <member name="M:DbExtensions.Extensions.GetDouble(System.Data.IDataRecord,System.String)">
+            <summary>
+            Gets the value of the specified column as a <see cref="T:System.Double"/>.
+            </summary>
+            <inheritdoc cref="M:DbExtensions.Extensions.GetValue(System.Data.IDataRecord,System.String)"/>
+        </member>
+        <member name="M:DbExtensions.Extensions.GetFloat(System.Data.IDataRecord,System.String)">
+            <summary>
+            Gets the value of the specified column as a <see cref="T:System.Single"/>.
+            </summary>
+            <inheritdoc cref="M:DbExtensions.Extensions.GetValue(System.Data.IDataRecord,System.String)"/>
+        </member>
+        <member name="M:DbExtensions.Extensions.GetInt16(System.Data.IDataRecord,System.String)">
+            <summary>
+            Gets the value of the specified column as an <see cref="T:System.Int16"/>.
+            </summary>
+            <inheritdoc cref="M:DbExtensions.Extensions.GetValue(System.Data.IDataRecord,System.String)"/>
+        </member>
+        <member name="M:DbExtensions.Extensions.GetInt32(System.Data.IDataRecord,System.String)">
+            <summary>
+            Gets the value of the specified column as an <see cref="T:System.Int32"/>.
+            </summary>
+            <inheritdoc cref="M:DbExtensions.Extensions.GetValue(System.Data.IDataRecord,System.String)"/>
+        </member>
+        <member name="M:DbExtensions.Extensions.GetInt64(System.Data.IDataRecord,System.String)">
+            <summary>
+            Gets the value of the specified column as an <see cref="T:System.Int64"/>.
+            </summary>
+            <inheritdoc cref="M:DbExtensions.Extensions.GetValue(System.Data.IDataRecord,System.String)"/>
+        </member>
+        <member name="M:DbExtensions.Extensions.GetString(System.Data.IDataRecord,System.String)">
+            <summary>
+            Gets the value of the specified column as a <see cref="T:System.String"/>.
+            </summary>
+            <inheritdoc cref="M:DbExtensions.Extensions.GetValue(System.Data.IDataRecord,System.String)"/>
+        </member>
+        <member name="M:DbExtensions.Extensions.GetValue(System.Data.IDataRecord,System.String)">
+            <summary>
+            Gets the value of the specified column.
+            </summary>
+            <param name="record">The data record.</param>
+            <param name="name">The name of the column to find.</param>
+            <returns>The value of the column.</returns>
+        </member>
+        <member name="M:DbExtensions.Extensions.GetNullableBoolean(System.Data.IDataRecord,System.String)">
+            <summary>
+            Gets the value of the specified column as a <see cref="T:System.Nullable`1"/> of <see cref="T:System.Boolean"/>.
+            </summary>
+            <inheritdoc cref="M:DbExtensions.Extensions.GetValue(System.Data.IDataRecord,System.String)"/>
+        </member>
+        <member name="M:DbExtensions.Extensions.GetNullableBoolean(System.Data.IDataRecord,System.Int32)">
+            <summary>
+            Gets the value of the specified column as a <see cref="T:System.Nullable`1"/> of <see cref="T:System.Boolean"/>.
+            </summary>
+            <inheritdoc cref="M:DbExtensions.Extensions.GetValueOrNull(System.Data.IDataRecord,System.Int32)"/>
+        </member>
+        <member name="M:DbExtensions.Extensions.GetNullableByte(System.Data.IDataRecord,System.String)">
+            <summary>
+            Gets the value of the specified column as a <see cref="T:System.Nullable`1"/> of <see cref="T:System.Byte"/>.
+            </summary>
+            <inheritdoc cref="M:DbExtensions.Extensions.GetValue(System.Data.IDataRecord,System.String)"/>
+        </member>
+        <member name="M:DbExtensions.Extensions.GetNullableByte(System.Data.IDataRecord,System.Int32)">
+            <summary>
+            Gets the value of the specified column as a <see cref="T:System.Nullable`1"/> of <see cref="T:System.Byte"/>.
+            </summary>
+            <inheritdoc cref="M:DbExtensions.Extensions.GetValueOrNull(System.Data.IDataRecord,System.Int32)"/>
+        </member>
+        <member name="M:DbExtensions.Extensions.GetNullableChar(System.Data.IDataRecord,System.String)">
+            <summary>
+            Gets the value of the specified column as a <see cref="T:System.Nullable`1"/> of <see cref="T:System.Char"/>.
+            </summary>
+            <inheritdoc cref="M:DbExtensions.Extensions.GetValue(System.Data.IDataRecord,System.String)"/>
+        </member>
+        <member name="M:DbExtensions.Extensions.GetNullableChar(System.Data.IDataRecord,System.Int32)">
+            <summary>
+            Gets the value of the specified column as a <see cref="T:System.Nullable`1"/> of <see cref="T:System.Char"/>.
+            </summary>
+            <inheritdoc cref="M:DbExtensions.Extensions.GetValueOrNull(System.Data.IDataRecord,System.Int32)"/>
+        </member>
+        <member name="M:DbExtensions.Extensions.GetNullableDateTime(System.Data.IDataRecord,System.String)">
+            <summary>
+            Gets the value of the specified column as a <see cref="T:System.Nullable`1"/> of <see cref="T:System.DateTime"/>.
+            </summary>
+            <inheritdoc cref="M:DbExtensions.Extensions.GetValue(System.Data.IDataRecord,System.String)"/>
+        </member>
+        <member name="M:DbExtensions.Extensions.GetNullableDateTime(System.Data.IDataRecord,System.Int32)">
+            <summary>
+            Gets the value of the specified column as a <see cref="T:System.Nullable`1"/> of <see cref="T:System.DateTime"/>.
+            </summary>
+            <inheritdoc cref="M:DbExtensions.Extensions.GetValueOrNull(System.Data.IDataRecord,System.Int32)"/>
+        </member>
+        <member name="M:DbExtensions.Extensions.GetNullableDecimal(System.Data.IDataRecord,System.String)">
+            <summary>
+            Gets the value of the specified column as a <see cref="T:System.Nullable`1"/> of <see cref="T:System.Decimal"/>.
+            </summary>
+            <inheritdoc cref="M:DbExtensions.Extensions.GetValue(System.Data.IDataRecord,System.String)"/>
+        </member>
+        <member name="M:DbExtensions.Extensions.GetNullableDecimal(System.Data.IDataRecord,System.Int32)">
+            <summary>
+            Gets the value of the specified column as a <see cref="T:System.Nullable`1"/> of <see cref="T:System.Decimal"/>.
+            </summary>
+            <inheritdoc cref="M:DbExtensions.Extensions.GetValueOrNull(System.Data.IDataRecord,System.Int32)"/>
+        </member>
+        <member name="M:DbExtensions.Extensions.GetNullableDouble(System.Data.IDataRecord,System.String)">
+            <summary>
+            Gets the value of the specified column as a <see cref="T:System.Nullable`1"/> of <see cref="T:System.Double"/>.
+            </summary>
+            <inheritdoc cref="M:DbExtensions.Extensions.GetValue(System.Data.IDataRecord,System.String)"/>
+        </member>
+        <member name="M:DbExtensions.Extensions.GetNullableDouble(System.Data.IDataRecord,System.Int32)">
+            <summary>
+            Gets the value of the specified column as a <see cref="T:System.Nullable`1"/> of <see cref="T:System.Double"/>.
+            </summary>
+            <inheritdoc cref="M:DbExtensions.Extensions.GetValueOrNull(System.Data.IDataRecord,System.Int32)"/>
+        </member>
+        <member name="M:DbExtensions.Extensions.GetNullableFloat(System.Data.IDataRecord,System.String)">
+            <summary>
+            Gets the value of the specified column as a <see cref="T:System.Nullable`1"/> of <see cref="T:System.Single"/>.
+            </summary>
+            <inheritdoc cref="M:DbExtensions.Extensions.GetValue(System.Data.IDataRecord,System.String)"/>
+        </member>
+        <member name="M:DbExtensions.Extensions.GetNullableFloat(System.Data.IDataRecord,System.Int32)">
+            <summary>
+            Gets the value of the specified column as a <see cref="T:System.Nullable`1"/> of <see cref="T:System.Single"/>.
+            </summary>
+            <inheritdoc cref="M:DbExtensions.Extensions.GetValueOrNull(System.Data.IDataRecord,System.Int32)"/>
+        </member>
+        <member name="M:DbExtensions.Extensions.GetNullableGuid(System.Data.IDataRecord,System.String)">
+            <summary>
+            Gets the value of the specified column as a <see cref="T:System.Nullable`1"/> of <see cref="T:System.Guid"/>.
+            </summary>
+            <inheritdoc cref="M:DbExtensions.Extensions.GetValue(System.Data.IDataRecord,System.String)"/>
+        </member>
+        <member name="M:DbExtensions.Extensions.GetNullableGuid(System.Data.IDataRecord,System.Int32)">
+            <summary>
+            Gets the value of the specified column as a <see cref="T:System.Nullable`1"/> of <see cref="T:System.Guid"/>.
+            </summary>
+            <inheritdoc cref="M:DbExtensions.Extensions.GetValueOrNull(System.Data.IDataRecord,System.Int32)"/>
+        </member>
+        <member name="M:DbExtensions.Extensions.GetNullableInt16(System.Data.IDataRecord,System.String)">
+            <summary>
+            Gets the value of the specified column as a <see cref="T:System.Nullable`1"/> of <see cref="T:System.Int16"/>.
+            </summary>
+            <inheritdoc cref="M:DbExtensions.Extensions.GetValue(System.Data.IDataRecord,System.String)"/>
+        </member>
+        <member name="M:DbExtensions.Extensions.GetNullableInt16(System.Data.IDataRecord,System.Int32)">
+            <summary>
+            Gets the value of the specified column as a <see cref="T:System.Nullable`1"/> of <see cref="T:System.Int16"/>.
+            </summary>
+            <inheritdoc cref="M:DbExtensions.Extensions.GetValueOrNull(System.Data.IDataRecord,System.Int32)"/>
+        </member>
+        <member name="M:DbExtensions.Extensions.GetNullableInt32(System.Data.IDataRecord,System.String)">
+            <summary>
+            Gets the value of the specified column as a <see cref="T:System.Nullable`1"/> of <see cref="T:System.Int32"/>.
+            </summary>
+            <inheritdoc cref="M:DbExtensions.Extensions.GetValue(System.Data.IDataRecord,System.String)"/>
+        </member>
+        <member name="M:DbExtensions.Extensions.GetNullableInt32(System.Data.IDataRecord,System.Int32)">
+            <summary>
+            Gets the value of the specified column as a <see cref="T:System.Nullable`1"/> of <see cref="T:System.Int32"/>.
+            </summary>
+            <inheritdoc cref="M:DbExtensions.Extensions.GetValueOrNull(System.Data.IDataRecord,System.Int32)"/>
+        </member>
+        <member name="M:DbExtensions.Extensions.GetNullableInt64(System.Data.IDataRecord,System.String)">
+            <summary>
+            Gets the value of the specified column as a <see cref="T:System.Nullable`1"/> of <see cref="T:System.Int64"/>.
+            </summary>
+            <inheritdoc cref="M:DbExtensions.Extensions.GetValue(System.Data.IDataRecord,System.String)"/>
+        </member>
+        <member name="M:DbExtensions.Extensions.GetNullableInt64(System.Data.IDataRecord,System.Int32)">
+            <summary>
+            Gets the value of the specified column as a <see cref="T:System.Nullable`1"/> of <see cref="T:System.Int64"/>.
+            </summary>
+            <inheritdoc cref="M:DbExtensions.Extensions.GetValueOrNull(System.Data.IDataRecord,System.Int32)"/>
+        </member>
+        <member name="M:DbExtensions.Extensions.GetStringOrNull(System.Data.IDataRecord,System.String)">
+            <summary>
+            Gets the value of the specified column as a <see cref="T:System.String"/>, or null (Nothing in Visual Basic).
+            </summary>
+            <inheritdoc cref="M:DbExtensions.Extensions.GetValue(System.Data.IDataRecord,System.String)"/>
+        </member>
+        <member name="M:DbExtensions.Extensions.GetStringOrNull(System.Data.IDataRecord,System.Int32)">
+            <summary>
+            Gets the value of the specified column as a <see cref="T:System.String"/>, or null (Nothing in Visual Basic).
+            </summary>
+            <inheritdoc cref="M:DbExtensions.Extensions.GetValueOrNull(System.Data.IDataRecord,System.Int32)"/>
+        </member>
+        <member name="M:DbExtensions.Extensions.GetValueOrNull(System.Data.IDataRecord,System.String)">
+            <summary>
+            Gets the value of the specified column as an <see cref="T:System.Object"/>, or null (Nothing in Visual Basic).
+            </summary>
+            <inheritdoc cref="M:DbExtensions.Extensions.GetValue(System.Data.IDataRecord,System.String)"/>
+        </member>
+        <member name="M:DbExtensions.Extensions.GetValueOrNull(System.Data.IDataRecord,System.Int32)">
+            <summary>
+            Gets the value of the specified column as an <see cref="T:System.Object"/>, or null (Nothing in Visual Basic).
+            </summary>
+            <param name="record">The data record.</param>
+            <param name="i">The zero-based column ordinal.</param>
+            <returns>The value of the column.</returns>
+        </member>
+        <member name="T:DbExtensions.SqlSet">
+            <summary>
+            Represents an immutable, connected SQL query.
+            This class cannot be instantiated, to get an instance use the <see cref="M:DbExtensions.Database.From(System.String)"/> method.
+            </summary>
+            <remarks>For information on how to use SqlSet see <see href="http://maxtoroq.github.io/DbExtensions/docs/SqlSet.html">SqlSet Tutorial</see>.</remarks>
+        </member>
+        <member name="P:DbExtensions.SqlSet.ResultType">
+            <summary>
+            The type of objects this set returns. This property can be null.
+            </summary>
+        </member>
+        <member name="M:DbExtensions.SqlSet.GetDefiningQuery">
+            <summary>
+            Returns the SQL query that is the source of data for the set.
+            </summary>
+            <returns>The SQL query that is the source of data for the set</returns>
+        </member>
+        <member name="M:DbExtensions.SqlSet.All(System.String,System.Object[])">
+            <summary>
+            Determines whether all elements of the set satisfy a condition.
+            </summary>
+            <param name="predicate">A SQL expression to test each row for a condition.</param>
+            <param name="parameters">The parameters to apply to the <paramref name="predicate"/>.</param>
+            <returns>true if every element of the set passes the test in the specified <paramref name="predicate"/>, or if the set is empty; otherwise, false.</returns>
+        </member>
+        <member name="M:DbExtensions.SqlSet.Any">
+            <summary>
+            Determines whether the set contains any elements.
+            </summary>
+            <returns>true if the sequence contains any elements; otherwise, false.</returns>
+        </member>
+        <member name="M:DbExtensions.SqlSet.Any(System.String,System.Object[])">
+            <summary>
+            Determines whether any element of the set satisfies a condition.
+            </summary>
+            <param name="predicate">A SQL expression to test each row for a condition.</param>
+            <param name="parameters">The parameters to apply to the <paramref name="predicate"/>.</param>
+            <returns>true if any elements in the set pass the test in the specified <paramref name="predicate"/>; otherwise, false.</returns>
+        </member>
+        <member name="M:DbExtensions.SqlSet.AsEnumerable">
+            <summary>
+            Gets all elements in the set. The query is deferred-executed.
+            </summary>
+            <returns>All elements in the set.</returns>
+        </member>
+        <member name="M:DbExtensions.SqlSet.Cast``1">
+            <summary>
+            Casts the elements of the set to the specified type.
+            </summary>
+            <typeparam name="TResult">The type to cast the elements of the set to.</typeparam>
+            <returns>A new <see cref="T:DbExtensions.SqlSet`1"/> that contains each element of the current set cast to the specified type.</returns>
+        </member>
+        <member name="M:DbExtensions.SqlSet.Cast(System.Type)">
+            <summary>
+            Casts the elements of the set to the specified type.
+            </summary>
+            <param name="resultType">The type to cast the elements of the set to.</param>
+            <returns>A new <see cref="T:DbExtensions.SqlSet"/> that contains each element of the current set cast to the specified type.</returns>
+        </member>
+        <member name="M:DbExtensions.SqlSet.Count">
+            <summary>
+            Returns the number of elements in the set.
+            </summary>
+            <returns>The number of elements in the set.</returns>
+            <exception cref="T:System.OverflowException">The number of elements is larger than <see cref="F:System.Int32.MaxValue"/>.</exception>      
+        </member>
+        <member name="M:DbExtensions.SqlSet.Count(System.String,System.Object[])">
+            <summary>
+            Returns a number that represents how many elements in the set satisfy a condition.
+            </summary>
+            <param name="predicate">A SQL expression to test each row for a condition.</param>
+            <param name="parameters">The parameters to apply to the predicate.</param>
+            <returns>A number that represents how many elements in the set satisfy the condition in the <paramref name="predicate"/>.</returns>
+            <exception cref="T:System.OverflowException">The number of matching elements exceeds <see cref="F:System.Int32.MaxValue"/>.</exception>      
+        </member>
+        <member name="M:DbExtensions.SqlSet.First">
+            <summary>
+            Returns the first element of the set.
+            </summary>
+            <returns>The first element in the set.</returns>
+            <exception cref="T:System.InvalidOperationException">The set is empty.</exception>
+        </member>
+        <member name="M:DbExtensions.SqlSet.First(System.String,System.Object[])">
+            <summary>
+            Returns the first element in the set that satisfies a specified condition.
+            </summary>
+            <param name="predicate">A SQL expression to test each row for a condition.</param>
+            <param name="parameters">The parameters to apply to the <paramref name="predicate"/>.</param>
+            <returns>The first element in the set that passes the test in the specified <paramref name="predicate"/>.</returns>
+            <exception cref="T:System.InvalidOperationException">No element satisfies the condition in <paramref name="predicate"/>.-or-The set is empty.</exception>
+        </member>
+        <member name="M:DbExtensions.SqlSet.FirstOrDefault">
+            <summary>
+            Returns the first element of the set, or a default value if the set contains no elements.
+            </summary>
+            <returns>A default value if the set is empty; otherwise, the first element.</returns>
+        </member>
+        <member name="M:DbExtensions.SqlSet.FirstOrDefault(System.String,System.Object[])">
+            <summary>
+            Returns the first element of the set that satisfies a condition or a default value if no such element is found.
+            </summary>
+            <param name="predicate">A SQL expression to test each row for a condition.</param>
+            <param name="parameters">The parameters to apply to the <paramref name="predicate"/>.</param>
+            <returns>
+            A default value if the set is empty or if no element passes the test specified by <paramref name="predicate"/>; otherwise, the 
+            first element that passes the test specified by <paramref name="predicate"/>.
+            </returns>
+        </member>
+        <member name="M:DbExtensions.SqlSet.GetEnumerator">
+            <summary>
+            Returns an enumerator that iterates through the set.
+            </summary>
+            <returns>A <see cref="T:System.Collections.Generic.IEnumerator`1"/> for the set.</returns>
+        </member>
+        <member name="M:DbExtensions.SqlSet.LongCount">
+            <summary>
+            Returns an <see cref="T:System.Int64"/> that represents the total number of elements in the set.
+            </summary>
+            <returns>The number of elements in the set.</returns>
+            <exception cref="T:System.OverflowException">The number of elements is larger than <see cref="F:System.Int64.MaxValue"/>.</exception>      
+        </member>
+        <member name="M:DbExtensions.SqlSet.LongCount(System.String,System.Object[])">
+            <summary>
+            Returns an <see cref="T:System.Int64"/> that represents how many elements in the set satisfy a condition.
+            </summary>
+            <param name="predicate">A SQL expression to test each row for a condition.</param>
+            <param name="parameters">The parameters to apply to the <paramref name="predicate"/>.</param>
+            <returns>A number that represents how many elements in the set satisfy the condition in the <paramref name="predicate"/>.</returns>
+            <exception cref="T:System.OverflowException">The number of matching elements exceeds <see cref="F:System.Int64.MaxValue"/>.</exception>      
+        </member>
+        <member name="M:DbExtensions.SqlSet.OrderBy(System.String,System.Object[])">
+            <summary>
+            Sorts the elements of the set according to the <paramref name="columnList"/>.
+            </summary>
+            <param name="columnList">The list of columns to base the sort on.</param>
+            <param name="parameters">The parameters to apply to the <paramref name="columnList"/>.</param>
+            <returns>A new <see cref="T:DbExtensions.SqlSet"/> whose elements are sorted according to <paramref name="columnList"/>.</returns>
+        </member>
+        <member name="M:DbExtensions.SqlSet.Select``1(System.String,System.Object[])">
+            <summary>
+            Projects each element of the set into a new form.
+            </summary>
+            <typeparam name="TResult">The type that <paramref name="columnList"/> maps to.</typeparam>
+            <param name="columnList">The list of columns that maps to properties on <typeparamref name="TResult"/>.</param>
+            <param name="parameters">The parameters to apply to the <paramref name="columnList"/>.</param>
+            <returns>A new <see cref="T:DbExtensions.SqlSet`1"/>.</returns>
+        </member>
+        <member name="M:DbExtensions.SqlSet.Select``1(System.Func{System.Data.IDataRecord,``0},System.String,System.Object[])">
+            <summary>
+            Projects each element of the set into a new form.
+            </summary>
+            <typeparam name="TResult">The type that <paramref name="mapper"/> returns.</typeparam>
+            <param name="mapper">A custom mapper function that creates <typeparamref name="TResult"/> instances from the rows in the set.</param>
+            <param name="columnList">The list of columns that are used by <paramref name="mapper"/>.</param>
+            <param name="parameters">The parameters to apply to the <paramref name="columnList"/>.</param>
+            <returns>A new <see cref="T:DbExtensions.SqlSet`1"/>.</returns>
+        </member>
+        <member name="M:DbExtensions.SqlSet.Select(System.Type,System.String,System.Object[])">
+            <summary>
+            Projects each element of the set into a new form.
+            </summary>
+            <param name="resultType">The type that <paramref name="columnList"/> maps to.</param>
+            <param name="columnList">The list of columns that maps to properties on <paramref name="resultType"/>.</param>
+            <param name="parameters">The parameters to apply to the <paramref name="columnList"/>.</param>
+            <returns>A new <see cref="T:DbExtensions.SqlSet"/>.</returns>
+        </member>
+        <member name="M:DbExtensions.SqlSet.Select(System.String,System.Object[])">
+            <summary>
+            Projects each element of the set into a new form.
+            </summary>
+            <param name="columnList">The list of columns to select.</param>
+            <param name="parameters">The parameters to apply to the <paramref name="columnList"/>.</param>
+            <returns>A new <see cref="T:DbExtensions.SqlSet"/>.</returns>
+        </member>
+        <member name="M:DbExtensions.SqlSet.Single">
+            <summary>
+            The single element of the set.
+            </summary>
+            <returns>The single element of the set.</returns>
+            <exception cref="T:System.InvalidOperationException">The set contains more than one element.-or-The set is empty.</exception>      
+        </member>
+        <member name="M:DbExtensions.SqlSet.Single(System.String,System.Object[])">
+            <summary>
+            Returns the only element of the set that satisfies a specified condition, and throws an exception if more than one such element exists.
+            </summary>
+            <param name="predicate">A SQL expression to test each row for a condition.</param>
+            <param name="parameters">The parameters to apply to the <paramref name="predicate"/>.</param>
+            <returns>The single element of the set that passes the test in the specified <paramref name="predicate"/>.</returns>
+            <exception cref="T:System.InvalidOperationException">No element satisfies the condition in <paramref name="predicate"/>.-or-More than one element satisfies the condition in <paramref name="predicate"/>.-or-The set is empty.</exception>      
+        </member>
+        <member name="M:DbExtensions.SqlSet.SingleOrDefault">
+            <summary>
+            Returns the only element of the set, or a default value if the set is empty; this method throws an exception if there is more than one element in the set.
+            </summary>
+            <returns>The single element of the set, or a default value if the set contains no elements.</returns>
+            <exception cref="T:System.InvalidOperationException">The set contains more than one element.</exception>
+        </member>
+        <member name="M:DbExtensions.SqlSet.SingleOrDefault(System.String,System.Object[])">
+            <summary>
+            Returns the only element of the set that satisfies a specified condition or a default value if no such element exists; this method throws an exception if more than one element satisfies the condition.
+            </summary>
+            <param name="predicate">A SQL expression to test each row for a condition.</param>
+            <param name="parameters">The parameters to apply to the <paramref name="predicate"/>.</param>
+            <returns>The single element of the set that satisfies the condition, or a default value if no such element is found.</returns>
+        </member>
+        <member name="M:DbExtensions.SqlSet.Skip(System.Int32)">
+            <summary>
+            Bypasses a specified number of elements in the set and then returns the remaining elements.
+            </summary>
+            <param name="count">The number of elements to skip before returning the remaining elements.</param>
+            <returns>A new <see cref="T:DbExtensions.SqlSet"/> that contains the elements that occur after the specified index in the current set.</returns>
+        </member>
+        <member name="M:DbExtensions.SqlSet.Take(System.Int32)">
+            <summary>
+            Returns a specified number of contiguous elements from the start of the set.
+            </summary>
+            <param name="count">The number of elements to return.</param>
+            <returns>A new <see cref="T:DbExtensions.SqlSet"/> that contains the specified number of elements from the start of the current set.</returns>
+        </member>
+        <member name="M:DbExtensions.SqlSet.ToArray">
+            <summary>
+            Creates an array from the set.
+            </summary>
+            <returns>An array that contains the elements from the set.</returns>
+        </member>
+        <member name="M:DbExtensions.SqlSet.ToList">
+            <summary>
+            Creates a List&lt;object> from the set.
+            </summary>
+            <returns>A List&lt;object> that contains elements from the set.</returns>
+        </member>
+        <member name="M:DbExtensions.SqlSet.Where(System.String,System.Object[])">
+            <summary>
+            Filters the set based on a predicate.
+            </summary>
+            <param name="predicate">A SQL expression to test each row for a condition.</param>
+            <param name="parameters">The parameters to apply to the <paramref name="predicate"/>.</param>
+            <returns>A new <see cref="T:DbExtensions.SqlSet"/> that contains elements from the current set that satisfy the condition.</returns>
+        </member>
+        <member name="M:DbExtensions.SqlSet.Equals(System.Object)">
+            <exclude/>
+        </member>
+        <member name="M:DbExtensions.SqlSet.GetHashCode">
+            <exclude/>
+        </member>
+        <member name="M:DbExtensions.SqlSet.GetType">
+            <exclude/>
+        </member>
+        <member name="M:DbExtensions.SqlSet.ToString">
+            <summary>
+            Returns the SQL query of the set.
+            </summary>
+            <returns>The SQL query of the set.</returns>
+        </member>
+        <member name="M:DbExtensions.SqlSet.Contains(System.Object)">
+            <summary>
+            Checks the existance of the <paramref name="entity"/>, using the primary key value.
+            </summary>
+            <param name="entity">The entity whose existance is to be checked.</param>
+            <returns>true if the primary key value exists in the database; otherwise false.</returns>
+            <remarks>
+            This method can only be used on sets where the result type is an annotated class.
+            </remarks>
+        </member>
+        <member name="M:DbExtensions.SqlSet.ContainsKey(System.Object)">
+            <summary>
+            Checks the existance of an entity whose primary matches the <paramref name="id"/> parameter.
+            </summary>
+            <param name="id">The primary key value.</param>
+            <returns>true if the primary key value exists in the database; otherwise false.</returns>
+            <remarks>
+            This method can only be used on sets where the result type is an annotated class.
+            </remarks>
+        </member>
+        <member name="M:DbExtensions.SqlSet.Find(System.Object)">
+            <summary>
+            Gets the entity whose primary key matches the <paramref name="id"/> parameter.
+            </summary>
+            <param name="id">The primary key value.</param>
+            <returns>
+            The entity whose primary key matches the <paramref name="id"/> parameter, 
+            or null if the <paramref name="id"/> does not exist.
+            </returns>
+            <remarks>
+            This method can only be used on sets where the result type is an annotated class.
+            </remarks>
+        </member>
+        <member name="M:DbExtensions.SqlSet.Include(System.String)">
+            <summary>
+            Specifies the related objects to include in the query results.
+            </summary>
+            <param name="path">Dot-separated list of related objects to return in the query results.</param>
+            <returns>A new <see cref="T:DbExtensions.SqlSet"/> with the defined query path.</returns>
+            <remarks>
+            This method can only be used on sets where the result type is an annotated class.
+            </remarks>
+        </member>
+        <member name="T:DbExtensions.TableAttribute">
+            <summary>
+            Designates a class as an entity class that is associated with a database table.
+            </summary>
+        </member>
+        <member name="P:DbExtensions.TableAttribute.Name">
+            <summary>
+            Gets or sets the name of the table or view.
+            </summary>
+        </member>
+        <member name="T:DbExtensions.ColumnAttribute">
+            <summary>
+            Associates a property with a column in a database table.
+            </summary>
+        </member>
+        <member name="P:DbExtensions.ColumnAttribute.Name">
+            <summary>
+            Gets or sets the name of a column.
+            </summary>
+        </member>
+        <member name="P:DbExtensions.ColumnAttribute.DbExtensions#IDataAttribute#Storage">
+            <summary>
+            Gets or sets a private storage field to hold the value from a column.
+            </summary>
+        </member>
+        <member name="P:DbExtensions.ColumnAttribute.DbType">
+            <summary>
+            Gets or sets the type of the database column.
+            </summary>
+        </member>
+        <member name="P:DbExtensions.ColumnAttribute.ConvertTo">
+            <summary>
+            Gets or sets the type to convert this member to before sending to the database.
+            </summary>
+        </member>
+        <member name="P:DbExtensions.ColumnAttribute.IsPrimaryKey">
+            <summary>
+            Gets or sets whether this class member represents a column that is part or all of the primary key of the table.
+            </summary>
+        </member>
+        <member name="P:DbExtensions.ColumnAttribute.IsDbGenerated">
+            <summary>
+             Gets or sets whether a column contains values that the database auto-generates.
+            </summary>
+        </member>
+        <member name="P:DbExtensions.ColumnAttribute.IsVersion">
+            <summary>
+            Gets or sets whether the column type of the member is a database timestamp or version number.
+            </summary>
+        </member>
+        <member name="P:DbExtensions.ColumnAttribute.AutoSync">
+            <summary>
+            Gets or sets the <see cref="P:DbExtensions.ColumnAttribute.AutoSync"/> enumeration.
+            </summary>
+        </member>
+        <member name="T:DbExtensions.AutoSync">
+            <summary>
+            Used to specify for during INSERT and UPDATE operations when
+            a data member should be read back after the operation completes.
+            </summary>
+        </member>
+        <member name="F:DbExtensions.AutoSync.Default">
+            <summary>
+            Automatically selects the value.
+            </summary>
+        </member>
+        <member name="F:DbExtensions.AutoSync.Always">
+            <summary>
+            Always returns the value.
+            </summary>
+        </member>
+        <member name="F:DbExtensions.AutoSync.Never">
+            <summary>
+            Never returns the value.
+            </summary>
+        </member>
+        <member name="F:DbExtensions.AutoSync.OnInsert">
+            <summary>
+            Returns the value only after an INSERT operation.
+            </summary>
+        </member>
+        <member name="F:DbExtensions.AutoSync.OnUpdate">
+            <summary>
+            Returns the value only after an UPDATE operation.
+            </summary>
+        </member>
+        <member name="T:DbExtensions.AssociationAttribute">
+            <summary>
+            Designates a property to represent a database association, such as a foreign key relationship.
+            </summary>
+        </member>
+        <member name="P:DbExtensions.AssociationAttribute.Name">
+            <summary>
+            Gets or sets the name of a constraint.
+            </summary>
+        </member>
+        <member name="P:DbExtensions.AssociationAttribute.DbExtensions#IDataAttribute#Storage">
+            <summary>
+            Gets or sets a private storage field to hold the value for the association property.
+            </summary>
+        </member>
+        <member name="P:DbExtensions.AssociationAttribute.ThisKey">
+            <summary>
+            Gets or sets members of this entity class to represent the key values on this side of the association.
+            </summary>
+        </member>
+        <member name="P:DbExtensions.AssociationAttribute.OtherKey">
+            <summary>
+            Gets or sets one or more members of the target entity class as key values on the other side of the association.
+            </summary>
+        </member>
+        <member name="P:DbExtensions.AssociationAttribute.IsUnique">
+            <summary>
+            Gets or sets the indication of a uniqueness constraint on the foreign key.
+            </summary>
+            <remarks>When true, this property indicates a true 1:1 relationship.</remarks>
+        </member>
+        <member name="P:DbExtensions.AssociationAttribute.IsForeignKey">
+            <summary>
+            Gets or sets the member as the foreign key in an association representing a database relationship.
+            </summary>
+        </member>
+        <member name="T:DbExtensions.InheritanceMappingAttribute">
+            <summary>
+            Class attribute used to describe an inheritance hierarchy to be mapped.
+            For example, 
+            
+                [Table(Name = "People")]
+                [InheritanceMapping(Code = "P", Type = typeof(Person), IsDefault=true)]
+                [InheritanceMapping(Code = "C", Type = typeof(Customer))]
+                [InheritanceMapping(Code = "E", Type = typeof(Employee))]
+                class Person { ... }
+                
+            </summary>
+        </member>
+        <member name="P:DbExtensions.InheritanceMappingAttribute.Code">
+            <summary>
+            Discriminator value in store column for this type.
+            </summary>
+        </member>
+        <member name="P:DbExtensions.InheritanceMappingAttribute.Type">
+            <summary>
+            Type to instantiate when Key is matched.
+            </summary>
+        </member>
+        <member name="P:DbExtensions.InheritanceMappingAttribute.IsDefault">
+            <summary>
+            If discriminator value in store column is unrecognized then instantiate this type.
+            </summary>
+        </member>
+        <member name="P:DbExtensions.Metadata.AttributedMetaDataMember.IsDbGenerated">
+            <summary>
+            Returns true if the member is explicitly marked as auto gen, or if the
+            member is computed or generated by the database server.
+            </summary>
+        </member>
+        <member name="M:DbExtensions.Metadata.MetaAssociationImpl.MakeKeys(DbExtensions.Metadata.MetaType,System.String)">
+            <summary>
+            Given a MetaType and a set of key fields, return the set of MetaDataMembers
+            corresponding to the key.
+            </summary>
+        </member>
+        <member name="M:DbExtensions.Metadata.MetaAssociationImpl.AreEqual(System.Collections.Generic.IEnumerable{DbExtensions.Metadata.MetaDataMember},System.Collections.Generic.IEnumerable{DbExtensions.Metadata.MetaDataMember})">
+            <summary>
+            Compare two sets of keys for equality.
+            </summary>
+        </member>
+        <member name="T:DbExtensions.Metadata.InheritanceRules">
+            <summary>
+            This class defines the rules for inheritance behaviors. The rules:
+            
+             (1) The same field may not be mapped to different database columns.    
+                 The DistinguishedMemberName and AreSameMember methods describe what 'same' means between two MemberInfos.
+             (2) Discriminators held in fixed-length fields in the database don't need
+                 to be manually padded in inheritance mapping [InheritanceMapping(Code='x')]. 
+             
+            </summary>
+        </member>
+        <member name="M:DbExtensions.Metadata.InheritanceRules.DistinguishedMemberName(System.Reflection.MemberInfo)">
+            <summary>
+            Creates a name that is the same when the member should be considered 'same'
+            for the purposes of the inheritance feature.
+            </summary>
+        </member>
+        <member name="M:DbExtensions.Metadata.InheritanceRules.AreSameMember(System.Reflection.MemberInfo,System.Reflection.MemberInfo)">
+            <summary>
+            Compares two MemberInfos for 'same-ness'.
+            </summary>
+        </member>
+        <member name="T:DbExtensions.Metadata.MappingSystem">
+            <summary>
+            Shared rules governing the mapping system.
+            </summary>
+        </member>
+        <member name="M:DbExtensions.Metadata.MappingSystem.IsSupportedDiscriminatorType(System.Type)">
+            <summary>
+            Return true if this is a clr type supported as an inheritance discriminator.
+            </summary>
+            <param name="type"></param>
+            <returns></returns>
+        </member>
+        <member name="M:DbExtensions.Metadata.MappingSystem.IsSupportedIdentityType(System.Type)">
+            <summary>
+            Return true if this is a CLR type supported as an identity member.  Since identity
+            management (caching) relies on key members being hashable, only types implementing
+            GetHashCode are supported.  Also, the runtime relies on identity members being comparable,
+            so only types implementing Equals are supported.
+            </summary>
+        </member>
+        <member name="T:DbExtensions.Metadata.MetaPosition">
+            <summary>
+            Hashable MetaDataToken+Assembly. This type uniquely describes a metadata element
+            like a MemberInfo. MetaDataToken by itself is not sufficient because its only
+            unique within a single assembly.
+            </summary>
+        </member>
+        <member name="T:DbExtensions.Metadata.MappingSource">
+            <summary>
+            Represents a source for mapping information.
+            </summary>
+        </member>
+        <member name="M:DbExtensions.Metadata.MappingSource.GetModel(System.Type)">
+            <summary>
+            Gets the MetaModel representing a DataContext and all it's 
+            accessible tables, functions and entities.
+            </summary>
+        </member>
+        <member name="M:DbExtensions.Metadata.MappingSource.CreateModel(System.Type)">
+            <summary>
+            Creates a new instance of a MetaModel.  This method is called by GetModel().
+            Override this method when defining a new type of MappingSource.
+            </summary>
+            <param name="dataContextType"></param>
+            <returns></returns>
+        </member>
+        <member name="T:DbExtensions.Metadata.AttributeMappingSource">
+            <summary>
+            A mapping source that uses attributes on the context to create the mapping model.
+            </summary>
+        </member>
+        <member name="T:DbExtensions.Metadata.MetaModel">
+            <summary>
+            A MetaModel is an abstraction representing the mapping between a database and domain objects
+            </summary>
+        </member>
+        <member name="P:DbExtensions.Metadata.MetaModel.MappingSource">
+            <summary>
+             The mapping source that originated this model.
+            </summary>
+        </member>
+        <member name="P:DbExtensions.Metadata.MetaModel.ContextType">
+            <summary>
+            The type of DataContext type this model describes.
+            </summary>
+        </member>
+        <member name="P:DbExtensions.Metadata.MetaModel.DatabaseName">
+            <summary>
+            The name of the database.
+            </summary>
+        </member>
+        <member name="M:DbExtensions.Metadata.MetaModel.GetTable(System.Type)">
+            <summary>
+            Gets the MetaTable associated with a given type.
+            </summary>
+            <param name="rowType">The CLR row type.</param>
+            <returns>The MetaTable if one exists, otherwise null.</returns>
+        </member>
+        <member name="M:DbExtensions.Metadata.MetaModel.GetTables">
+            <summary>
+            Get an enumeration of all tables.
+            </summary>
+            <returns>An enumeration of all the MetaTables</returns>
+        </member>
+        <member name="M:DbExtensions.Metadata.MetaModel.GetMetaType(System.Type)">
+            <summary>
+            This method discovers the MetaType for the given Type.
+            </summary>
+        </member>
+        <member name="T:DbExtensions.Metadata.MetaTable">
+            <summary>
+            A MetaTable represents an abstraction of a database table (or view)
+            </summary>
+        </member>
+        <member name="P:DbExtensions.Metadata.MetaTable.Model">
+            <summary>
+            The MetaModel containing this MetaTable.
+            </summary>
+        </member>
+        <member name="P:DbExtensions.Metadata.MetaTable.TableName">
+            <summary>
+            The name of the table as defined by the database.
+            </summary>
+        </member>
+        <member name="P:DbExtensions.Metadata.MetaTable.RowType">
+            <summary>
+            The MetaType describing the type of the rows of the table.
+            </summary>
+        </member>
+        <member name="T:DbExtensions.Metadata.MetaType">
+            <summary>
+            A MetaType represents the mapping of a domain object type onto a database table's columns.
+            </summary>
+        </member>
+        <member name="P:DbExtensions.Metadata.MetaType.Model">
+            <summary>
+            The MetaModel containing this MetaType.
+            </summary>
+        </member>
+        <member name="P:DbExtensions.Metadata.MetaType.Table">
+            <summary>
+            The MetaTable using this MetaType for row definition.
+            </summary>
+        </member>
+        <member name="P:DbExtensions.Metadata.MetaType.Type">
+            <summary>
+            The underlying CLR type.
+            </summary>
+        </member>
+        <member name="P:DbExtensions.Metadata.MetaType.Name">
+            <summary>
+            The name of the MetaType (same as the CLR type's name).
+            </summary>
+        </member>
+        <member name="P:DbExtensions.Metadata.MetaType.IsEntity">
+            <summary>
+            True if the MetaType is an entity type.
+            </summary>
+        </member>
+        <member name="P:DbExtensions.Metadata.MetaType.CanInstantiate">
+            <summary>
+            True if the underlying type can be instantiated as the result of a query.
+            </summary>
+        </member>
+        <member name="P:DbExtensions.Metadata.MetaType.DBGeneratedIdentityMember">
+            <summary>
+            The member that represents the auto-generated identity column, or null if there is none.
+            </summary>
+        </member>
+        <member name="P:DbExtensions.Metadata.MetaType.VersionMember">
+            <summary>
+            The member that represents the row-version or timestamp column, or null if there is none.
+            </summary>
+        </member>
+        <member name="P:DbExtensions.Metadata.MetaType.Discriminator">
+            <summary>
+            The member that represents the inheritance discriminator column, or null if there is none.
+            </summary>
+        </member>
+        <member name="P:DbExtensions.Metadata.MetaType.HasUpdateCheck">
+            <summary>
+            True if the type has any persistent member with an UpdateCheck policy other than Never.
+            </summary>
+        </member>
+        <member name="P:DbExtensions.Metadata.MetaType.HasInheritance">
+            <summary>
+            True if the type is part of a mapped inheritance hierarchy.
+            </summary>
+        </member>
+        <member name="P:DbExtensions.Metadata.MetaType.HasInheritanceCode">
+            <summary>
+            True if this type defines an inheritance code.
+            </summary>
+        </member>
+        <member name="P:DbExtensions.Metadata.MetaType.InheritanceCode">
+            <summary>
+            The inheritance code defined by this type.
+            </summary>
+        </member>
+        <member name="P:DbExtensions.Metadata.MetaType.IsInheritanceDefault">
+            <summary>
+            True if this type is used as the default of an inheritance hierarchy.
+            </summary>
+        </member>
+        <member name="P:DbExtensions.Metadata.MetaType.InheritanceRoot">
+            <summary>
+            The root type of the inheritance hierarchy.
+            </summary>
+        </member>
+        <member name="P:DbExtensions.Metadata.MetaType.InheritanceBase">
+            <summary>
+            The base metatype in the inheritance hierarchy.
+            </summary>
+        </member>
+        <member name="P:DbExtensions.Metadata.MetaType.InheritanceDefault">
+            <summary>
+            The type that is the default of the inheritance hierarchy.
+            </summary>
+        </member>
+        <member name="M:DbExtensions.Metadata.MetaType.GetInheritanceType(System.Type)">
+            <summary>
+            Gets the MetaType for an inheritance sub type.
+            </summary>
+            <param name="type">The root or sub type of the inheritance hierarchy.</param>
+            <returns>The MetaType.</returns>
+        </member>
+        <member name="M:DbExtensions.Metadata.MetaType.GetTypeForInheritanceCode(System.Object)">
+            <summary>
+            Gets type associated with the specified inheritance code.
+            </summary>
+            <param name="code">The inheritance code</param>
+            <returns>The MetaType.</returns>
+        </member>
+        <member name="P:DbExtensions.Metadata.MetaType.InheritanceTypes">
+            <summary>
+            Gets an enumeration of all types defined by an inheritance hierarchy.
+            </summary>
+            <returns>Enumeration of MetaTypes.</returns>
+        </member>
+        <member name="P:DbExtensions.Metadata.MetaType.DerivedTypes">
+            <summary>
+            Gets an enumeration of the immediate derived types in an inheritance hierarchy.
+            </summary>
+            <returns>Enumeration of MetaTypes.</returns>
+        </member>
+        <member name="P:DbExtensions.Metadata.MetaType.DataMembers">
+            <summary>
+            Gets an enumeration of all the data members (fields and properties).
+            </summary>
+        </member>
+        <member name="P:DbExtensions.Metadata.MetaType.PersistentDataMembers">
+            <summary>
+            Gets an enumeration of all the persistent data members (fields and properties mapped into database columns).
+            </summary>
+        </member>
+        <member name="P:DbExtensions.Metadata.MetaType.IdentityMembers">
+            <summary>
+            Gets an enumeration of all the data members that define up the unique identity of the type.
+            </summary>
+        </member>
+        <member name="P:DbExtensions.Metadata.MetaType.Associations">
+            <summary>
+            Gets an enumeration of all the associations.
+            </summary>
+        </member>
+        <member name="M:DbExtensions.Metadata.MetaType.GetDataMember(System.Reflection.MemberInfo)">
+            <summary>
+            Gets the MetaDataMember associated with the specified member.
+            </summary>
+            <param name="member">The CLR member.</param>
+            <returns>The MetaDataMember if there is one, otherwise null.</returns>
+        </member>
+        <member name="T:DbExtensions.Metadata.MetaDataMember">
+            <summary>
+            A MetaDataMember represents the mapping between a domain object's field or property into a database table's column.
+            </summary>
+        </member>
+        <member name="P:DbExtensions.Metadata.MetaDataMember.DeclaringType">
+            <summary>
+            The MetaType containing this data member.
+            </summary>
+        </member>
+        <member name="P:DbExtensions.Metadata.MetaDataMember.Member">
+            <summary>
+            The underlying MemberInfo.
+            </summary>
+        </member>
+        <member name="P:DbExtensions.Metadata.MetaDataMember.StorageMember">
+            <summary>
+            The member that actually stores this member's data.
+            </summary>
+        </member>
+        <member name="P:DbExtensions.Metadata.MetaDataMember.Name">
+            <summary>
+            The name of the member, same as the MemberInfo name.
+            </summary>
+        </member>
+        <member name="P:DbExtensions.Metadata.MetaDataMember.MappedName">
+            <summary>
+            The name of the column (or constraint) in the database.
+            </summary>
+        </member>
+        <member name="P:DbExtensions.Metadata.MetaDataMember.Ordinal">
+            <summary>
+            The oridinal position of this member in the default layout of query results.
+            </summary>
+        </member>
+        <member name="P:DbExtensions.Metadata.MetaDataMember.Type">
+            <summary>
+            The type of this member.
+            </summary>
+        </member>
+        <member name="M:DbExtensions.Metadata.MetaDataMember.IsDeclaredBy(DbExtensions.Metadata.MetaType)">
+            <summary>
+            True if this member is declared by the specified type.
+            </summary>
+            <param name="type">Type to check.</param>
+        </member>
+        <member name="P:DbExtensions.Metadata.MetaDataMember.MemberAccessor">
+            <summary>
+            The accessor used to get/set the value of this member.
+            </summary>
+        </member>
+        <member name="P:DbExtensions.Metadata.MetaDataMember.StorageAccessor">
+            <summary>
+            The accessor used to get/set the storage value of this member.
+            </summary>
+        </member>
+        <member name="P:DbExtensions.Metadata.MetaDataMember.IsPersistent">
+            <summary>
+            True if this member is mapped to a column (or constraint).
+            </summary>
+        </member>
+        <member name="P:DbExtensions.Metadata.MetaDataMember.IsAssociation">
+            <summary>
+            True if this member defines an association relationship.
+            </summary>
+        </member>
+        <member name="P:DbExtensions.Metadata.MetaDataMember.IsPrimaryKey">
+            <summary>
+            True if this member is part of the type's identity.
+            </summary>
+        </member>
+        <member name="P:DbExtensions.Metadata.MetaDataMember.IsDbGenerated">
+            <summary>
+            True if this member is automatically generated by the database.
+            </summary>
+        </member>
+        <member name="P:DbExtensions.Metadata.MetaDataMember.IsVersion">
+            <summary>
+            True if this member represents the row version or timestamp.
+            </summary>
+        </member>
+        <member name="P:DbExtensions.Metadata.MetaDataMember.IsDiscriminator">
+            <summary>
+            True if this member represents the inheritance discriminator.
+            </summary>
+        </member>
+        <member name="P:DbExtensions.Metadata.MetaDataMember.CanBeNull">
+            <summary>
+            True if this member's value can be assigned the null value.
+            </summary>
+        </member>
+        <member name="P:DbExtensions.Metadata.MetaDataMember.DbType">
+            <summary>
+            The type of the database column.
+            </summary>
+        </member>
+        <member name="P:DbExtensions.Metadata.MetaDataMember.Expression">
+            <summary>
+            Expression defining a computed column.
+            </summary>
+        </member>
+        <member name="P:DbExtensions.Metadata.MetaDataMember.UpdateCheck">
+            <summary>
+            The optimistic concurrency check policy for this member.
+            </summary>
+        </member>
+        <member name="P:DbExtensions.Metadata.MetaDataMember.AutoSync">
+            <summary>
+            Specifies for inserts and updates when this member should be read back after the
+            operation completes.
+            </summary>
+        </member>
+        <member name="P:DbExtensions.Metadata.MetaDataMember.Association">
+            <summary>
+            The MetaAssociation corresponding to this member, or null if there is none.
+            </summary>
+        </member>
+        <member name="T:DbExtensions.Metadata.MetaAssociation">
+            <summary>
+            A MetaAssociation represents an association relationship between two entity types.
+            </summary>
+        </member>
+        <member name="P:DbExtensions.Metadata.MetaAssociation.OtherType">
+            <summary>
+            The type on the other end of the association.
+            </summary>
+        </member>
+        <member name="P:DbExtensions.Metadata.MetaAssociation.ThisMember">
+            <summary>
+            The member on this side that represents the association.
+            </summary>
+        </member>
+        <member name="P:DbExtensions.Metadata.MetaAssociation.OtherMember">
+            <summary>
+            The member on the other side of this association that represents the reverse association (may be null).
+            </summary>
+        </member>
+        <member name="P:DbExtensions.Metadata.MetaAssociation.ThisKey">
+            <summary>
+            A list of members representing the values on this side of the association.
+            </summary>
+        </member>
+        <member name="P:DbExtensions.Metadata.MetaAssociation.OtherKey">
+            <summary>
+            A list of members representing the values on the other side of the association.
+            </summary>
+        </member>
+        <member name="P:DbExtensions.Metadata.MetaAssociation.IsMany">
+            <summary>
+            True if the association is OneToMany.
+            </summary>
+        </member>
+        <member name="P:DbExtensions.Metadata.MetaAssociation.IsForeignKey">
+            <summary>
+            True if the other type is the parent of this type.
+            </summary>
+        </member>
+        <member name="P:DbExtensions.Metadata.MetaAssociation.IsUnique">
+            <summary>
+            True if the association is unique (defines a uniqueness constraint).
+            </summary>
+        </member>
+        <member name="P:DbExtensions.Metadata.MetaAssociation.IsNullable">
+            <summary>
+            True if the association may be null (key values).
+            </summary>
+        </member>
+        <member name="P:DbExtensions.Metadata.MetaAssociation.ThisKeyIsPrimaryKey">
+            <summary>
+            True if the ThisKey forms the identity (primary key) of the this type.
+            </summary>
+        </member>
+        <member name="P:DbExtensions.Metadata.MetaAssociation.OtherKeyIsPrimaryKey">
+            <summary>
+            True if the OtherKey forms the identity (primary key) of the other type.
+            </summary>
+        </member>
+        <member name="P:DbExtensions.Metadata.MetaAssociation.DeleteRule">
+            <summary>
+            Specifies the behavior when the child is deleted (e.g. CASCADE, SET NULL).
+            Returns null if no action is specified on delete.
+            </summary>
+        </member>
+        <member name="P:DbExtensions.Metadata.MetaAssociation.DeleteOnNull">
+            <summary>
+            Specifies whether the object should be deleted when this association
+            is set to null.
+            </summary>
+        </member>
+        <member name="T:DbExtensions.Metadata.MetaAccessor">
+            <summary>
+            A MetaAccessor
+            </summary>
+        </member>
+        <member name="P:DbExtensions.Metadata.MetaAccessor.Type">
+            <summary>
+            The type of the member accessed by this accessor.
+            </summary>
+        </member>
+        <member name="M:DbExtensions.Metadata.MetaAccessor.GetBoxedValue(System.Object)">
+            <summary>
+            Gets the value as an object.
+            </summary>
+            <param name="instance">The instance to get the value from.</param>
+            <returns>Value.</returns>
+        </member>
+        <member name="M:DbExtensions.Metadata.MetaAccessor.SetBoxedValue(System.Object@,System.Object)">
+            <summary>
+            Sets the value as an object.
+            </summary>
+            <param name="instance">The instance to set the value into.</param>
+            <param name="value">The value to set.</param>
+        </member>
+        <member name="M:DbExtensions.Metadata.MetaAccessor.HasValue(System.Object)">
+            <summary>
+            True if the instance has a loaded or assigned value.
+            </summary>
+        </member>
+        <member name="M:DbExtensions.Metadata.MetaAccessor.HasAssignedValue(System.Object)">
+            <summary>
+            True if the instance has an assigned value.
+            </summary>
+        </member>
+        <member name="M:DbExtensions.Metadata.MetaAccessor.HasLoadedValue(System.Object)">
+            <summary>
+            True if the instance has a value loaded from a deferred source.
+            </summary>
+        </member>
+        <member name="T:DbExtensions.Metadata.MetaAccessor`2">
+            <summary>
+            A strongly-typed MetaAccessor. Used for reading from and writing to
+            CLR objects.
+            </summary>
+            <typeparam name="TEntity">The type of the object</typeparam>
+            <typeparam name="TMember">The type of the accessed member</typeparam>
+        </member>
+        <member name="P:DbExtensions.Metadata.MetaAccessor`2.Type">
+            <summary>
+            The underlying CLR type.
+            </summary>
+        </member>
+        <member name="M:DbExtensions.Metadata.MetaAccessor`2.SetBoxedValue(System.Object@,System.Object)">
+            <summary>
+            Set the boxed value on an instance.
+            </summary>
+        </member>
+        <member name="M:DbExtensions.Metadata.MetaAccessor`2.GetBoxedValue(System.Object)">
+            <summary>
+            Retrieve the boxed value.
+            </summary>
+        </member>
+        <member name="M:DbExtensions.Metadata.MetaAccessor`2.GetValue(`0)">
+            <summary>
+            Gets the strongly-typed value.
+            </summary>
+        </member>
+        <member name="M:DbExtensions.Metadata.MetaAccessor`2.SetValue(`0@,`1)">
+            <summary>
+            Sets the strongly-typed value
+            </summary>
+        </member>
+        <member name="T:DbExtensions.SqlBuilder">
+            <summary>
+            Represents a mutable SQL string.
+            </summary>
+            <remarks>For information on how to use SqlBuilder see <see href="http://maxtoroq.github.io/DbExtensions/docs/SqlBuilder.html">SqlBuilder Tutorial</see>.</remarks>
+        </member>
+        <member name="P:DbExtensions.SqlBuilder.Buffer">
+            <summary>
+            The underlying <see cref="T:System.Text.StringBuilder"/>.
+            </summary>
+        </member>
+        <member name="P:DbExtensions.SqlBuilder.ParameterValues">
+            <summary>
+            The parameter objects to be included in the database command.
+            </summary>
+        </member>
+        <member name="P:DbExtensions.SqlBuilder.CurrentClause">
+            <summary>
+            Gets or sets the current SQL clause, used to identify consecutive 
+            appends to the same clause.
+            </summary>
+        </member>
+        <member name="P:DbExtensions.SqlBuilder.CurrentSeparator">
+            <summary>
+            Gets or sets the separator of the current SQL clause body.
+            </summary>
+        </member>
+        <member name="P:DbExtensions.SqlBuilder.NextClause">
+            <summary>
+            Gets or sets the next SQL clause. Used by clause continuation methods,
+            such as <see cref="M:DbExtensions.SqlBuilder.AppendToCurrentClause(System.String,System.Object[])"/> and the methods that start with "_".
+            </summary>
+        </member>
+        <member name="P:DbExtensions.SqlBuilder.NextSeparator">
+            <summary>
+            Gets or sets the separator of the next SQL clause body.
+            </summary>
+        </member>
+        <member name="P:DbExtensions.SqlBuilder.IsEmpty">
+            <summary>
+            Returns true if the buffer is empty.
+            </summary>
+        </member>
+        <member name="M:DbExtensions.SqlBuilder.JoinSql(System.String,DbExtensions.SqlBuilder[])">
+            <summary>
+            Concatenates a specified separator <see cref="T:System.String"/> between each element of a 
+            specified <see cref="T:DbExtensions.SqlBuilder"/> array, yielding a single concatenated <see cref="T:DbExtensions.SqlBuilder"/>.
+            </summary>
+            <param name="separator">The string to use as a separator.</param>
+            <param name="values">An array of <see cref="T:DbExtensions.SqlBuilder"/>.</param>
+            <returns>
+            A <see cref="T:DbExtensions.SqlBuilder"/> consisting of the elements of <paramref name="values"/> 
+            interspersed with the <paramref name="separator"/> string.
+            </returns>
+        </member>
+        <member name="M:DbExtensions.SqlBuilder.JoinSql(System.String,System.Collections.Generic.IEnumerable{DbExtensions.SqlBuilder})">
+            <summary>
+            Concatenates the members of a constructed <see cref="T:System.Collections.Generic.IEnumerable`1"/> collection of type <see cref="T:DbExtensions.SqlBuilder"/>, 
+            using the specified <paramref name="separator"/> between each member.
+            </summary>
+            <param name="separator">The string to use as a separator.</param>
+            <param name="values">A collection that contains the <see cref="T:DbExtensions.SqlBuilder"/> objects to concatenate.</param>
+            <returns>
+            A <see cref="T:DbExtensions.SqlBuilder"/> that consists of the members of <paramref name="values"/> delimited 
+            by the <paramref name="separator"/> string. If <paramref name="values"/> has no members, the method returns
+            an empty <see cref="T:DbExtensions.SqlBuilder"/>.
+            </returns>
+        </member>
+        <member name="M:DbExtensions.SqlBuilder.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:DbExtensions.SqlBuilder"/> class.
+            </summary>
+        </member>
+        <member name="M:DbExtensions.SqlBuilder.#ctor(System.String,System.Object[])">
+            <summary>
+            Initializes a new instance of the <see cref="T:DbExtensions.SqlBuilder"/> class
+            using the provided format string and parameters.
+            </summary>
+            <param name="format">The SQL format string.</param>
+            <param name="args">The array of parameters.</param>
+        </member>
+        <member name="M:DbExtensions.SqlBuilder.AppendClause(System.String,System.String,System.String,System.Object[])">
+            <summary>
+            Appends the SQL clause specified by <paramref name="clauseName"/> using the provided 
+            <paramref name="format"/> string and parameters.
+            </summary>
+            <param name="clauseName">The SQL clause.</param>
+            <param name="separator">The clause body separator, used for consecutive appends to the same clause.</param>
+            <param name="format">The format string that represents the body of the clause.</param>
+            <param name="args">The parameters of the clause body.</param>
+            <returns>A reference to this instance after the append operation has completed.</returns>
+        </member>
+        <member name="M:DbExtensions.SqlBuilder.AppendToCurrentClause(System.String,System.Object[])">
+            <summary>
+            Appends <paramref name="format"/> to the current clause.
+            </summary>
+            <param name="format">The format string that represents the body of the current clause.</param>
+            <param name="args">The parameters of the clause body.</param>
+            <returns>A reference to this instance after the append operation has completed.</returns>
+        </member>
+        <member name="M:DbExtensions.SqlBuilder.Append(DbExtensions.SqlBuilder)">
+            <summary>
+            Appends <paramref name="sql"/> to this instance.
+            </summary>
+            <param name="sql">A <see cref="T:DbExtensions.SqlBuilder"/>.</param>
+            <returns>A reference to this instance after the append operation has completed.</returns>
+        </member>
+        <member name="M:DbExtensions.SqlBuilder.Append(System.String,System.Object[])">
+            <summary>
+            Appends <paramref name="format"/> to this instance.
+            </summary>
+            <param name="format">A SQL format string.</param>
+            <param name="args">The array of parameters.</param>
+            <returns>A reference to this instance after the append operation has completed.</returns>
+        </member>
+        <member name="M:DbExtensions.SqlBuilder.AppendLine">
+            <summary>
+            Appends the default line terminator to this instance.
+            </summary>
+            <returns>A reference to this instance after the append operation has completed.</returns>
+        </member>
+        <member name="M:DbExtensions.SqlBuilder.Insert(System.Int32,System.String)">
+            <summary>
+            Inserts a string into this instance at the specified character position.
+            </summary>
+            <param name="index">The position in this instance where insertion begins.</param>
+            <param name="value">The string to insert.</param>
+            <returns>A reference to this instance after the insert operation has completed.</returns>
+        </member>
+        <member name="M:DbExtensions.SqlBuilder.SetCurrentClause(System.String,System.String)">
+            <summary>
+            Sets <paramref name="clauseName"/> as the current SQL clause.
+            </summary>
+            <param name="clauseName">The SQL clause.</param>
+            <param name="separator">The clause body separator, used for consecutive appends to the same clause.</param>
+            <returns>A reference to this instance after the operation has completed.</returns>
+            <seealso cref="P:DbExtensions.SqlBuilder.CurrentClause"/>
+        </member>
+        <member name="M:DbExtensions.SqlBuilder.SetNextClause(System.String,System.String)">
+            <summary>
+            Sets <paramref name="clauseName"/> as the next SQL clause.
+            </summary>
+            <param name="clauseName">The SQL clause.</param>
+            <param name="separator">The clause body separator, used for consecutive appends to the same clause.</param>
+            <returns>A reference to this instance after the operation has completed.</returns>
+            <seealso cref="P:DbExtensions.SqlBuilder.NextClause"/>
+        </member>
+        <member name="M:DbExtensions.SqlBuilder.ToString">
+            <summary>
+            Converts the value of this instance to a <see cref="T:System.String"/>.
+            </summary>
+            <returns>A string whose value is the same as this instance.</returns>
+        </member>
+        <member name="M:DbExtensions.SqlBuilder.Clone">
+            <summary>
+            Creates and returns a copy of this instance.
+            </summary>
+            <returns>A new <see cref="T:DbExtensions.SqlBuilder"/> that is equivalent to this instance.</returns>
+        </member>
+        <member name="M:DbExtensions.SqlBuilder._(System.String,System.Object[])">
+            <summary>
+            Appends <paramref name="format"/> to the current clause. This method is a shortcut for
+            <see cref="M:DbExtensions.SqlBuilder.AppendToCurrentClause(System.String,System.Object[])"/>.
+            </summary>
+            <param name="format">The format string that represents the body of the current clause.</param>
+            <param name="args">The parameters of the clause body.</param>
+            <returns>A reference to this instance after the append operation has completed.</returns>
+        </member>
+        <member name="M:DbExtensions.SqlBuilder._If(System.Boolean,System.String,System.Object[])">
+            <summary>
+            Appends <paramref name="format"/> to the current clause if <paramref name="condition"/> is true.
+            </summary>
+            <param name="condition">true to append <paramref name="format"/> to the current clause; otherwise, false.</param>
+            <param name="format">The format string that represents the body of the current clause.</param>
+            <param name="args">The parameters of the clause body.</param>
+            <returns>A reference to this instance after the append operation has completed.</returns>
+        </member>
+        <member name="M:DbExtensions.SqlBuilder._ForEach``1(System.Collections.Generic.IEnumerable{``0},System.String,System.String,System.String,System.Func{``0,System.Object[]})">
+            <summary>
+            Appends to the current clause the string made by concatenating an <paramref name="itemFormat"/> for each element
+            in <paramref name="items"/>, interspersed with <paramref name="separator"/>.
+            </summary>
+            <typeparam name="T">The type of elements in <paramref name="items"/>.</typeparam>
+            <param name="items">The collection of objects that contain parameters.</param>
+            <param name="format">The clause body format string, which must contain a {0} placeholder. This parameter can be null.</param>
+            <param name="itemFormat">The item format.</param>
+            <param name="separator">The string to use as separator between each item format.</param>
+            <param name="parametersFactory">The delegate that extract parameters for each element in <paramref name="items"/>. This parameter can be null.</param>
+            <returns>A reference to this instance after the append operation has completed.</returns>
+        </member>
+        <member name="M:DbExtensions.SqlBuilder._OR``1(System.Collections.Generic.IEnumerable{``0},System.String,System.Func{``0,System.Object[]})">
+            <summary>
+            Appends to the current clause the string made by concatenating an <paramref name="itemFormat"/> for each element
+            in <paramref name="items"/>, interspersed with the OR operator.
+            </summary>
+            <typeparam name="T">The type of elements in <paramref name="items"/>.</typeparam>
+            <param name="items">The collection of objects that contain parameters.</param>
+            <param name="itemFormat">The format string.</param>
+            <param name="parametersFactory">The delegate that extract parameters for each element in <paramref name="items"/>.</param>
+            <returns>A reference to this instance after the append operation has completed.</returns>
+        </member>
+        <member name="M:DbExtensions.SqlBuilder.WITH(System.String,System.Object[])">
+            <summary>
+            Appends the WITH clause using the provided <paramref name="format"/> string and parameters.
+            </summary>
+            <param name="format">The format string that represents the body of the WITH clause.</param>
+            <param name="args">The parameters of the clause body.</param>
+            <returns>A reference to this instance after the append operation has completed.</returns>
+        </member>
+        <member name="M:DbExtensions.SqlBuilder.WITH(DbExtensions.SqlBuilder,System.String)">
+            <summary>
+            Appends the WITH clause using the provided <paramref name="subQuery"/> as body named after
+            <paramref name="alias"/>.
+            </summary>
+            <param name="subQuery">The sub-query to use as the body of the WITH clause.</param>
+            <param name="alias">The alias of the sub-query.</param>
+            <returns>A reference to this instance after the append operation has completed.</returns>
+        </member>
+        <member name="M:DbExtensions.SqlBuilder.SELECT">
+            <summary>
+            Sets SELECT as the next clause, to be used by subsequent calls to clause continuation methods,
+            such as <see cref="M:DbExtensions.SqlBuilder._(System.String,System.Object[])"/> and <see cref="M:DbExtensions.SqlBuilder._If(System.Boolean,System.String,System.Object[])"/>.
+            </summary>
+            <returns>A reference to this instance after the operation has completed.</returns>
+        </member>
+        <member name="M:DbExtensions.SqlBuilder.SELECT(System.String,System.Object[])">
+            <summary>
+            Appends the SELECT clause using the provided <paramref name="format"/> string and parameters.
+            </summary>
+            <param name="format">The format string that represents the body of the SELECT clause.</param>
+            <param name="args">The parameters of the clause body.</param>
+            <returns>A reference to this instance after the append operation has completed.</returns>
+        </member>
+        <member name="M:DbExtensions.SqlBuilder.FROM(System.String,System.Object[])">
+            <summary>
+            Appends the FROM clause using the provided <paramref name="format"/> string and parameters.
+            </summary>
+            <param name="format">The format string that represents the body of the FROM clause.</param>
+            <param name="args">The parameters of the clause body.</param>
+            <returns>A reference to this instance after the append operation has completed.</returns>
+        </member>
+        <member name="M:DbExtensions.SqlBuilder.FROM(DbExtensions.SqlBuilder,System.String)">
+            <summary>
+            Appends the FROM clause using the provided <paramref name="subQuery"/> as body named after
+            <paramref name="alias"/>.
+            </summary>
+            <param name="subQuery">The sub-query to use as the body of the FROM clause.</param>
+            <param name="alias">The alias of the sub-query.</param>
+            <returns>A reference to this instance after the append operation has completed.</returns>
+        </member>
+        <member name="M:DbExtensions.SqlBuilder.JOIN">
+            <summary>
+            Sets JOIN as the next clause, to be used by subsequent calls to clause continuation methods,
+            such as <see cref="M:DbExtensions.SqlBuilder._(System.String,System.Object[])"/> and <see cref="M:DbExtensions.SqlBuilder._If(System.Boolean,System.String,System.Object[])"/>.
+            </summary>
+            <returns>A reference to this instance after the operation has completed.</returns>
+        </member>
+        <member name="M:DbExtensions.SqlBuilder.JOIN(System.String,System.Object[])">
+            <summary>
+            Appends the JOIN clause using the provided <paramref name="format"/> string and parameters.
+            </summary>
+            <param name="format">The format string that represents the body of the JOIN clause.</param>
+            <param name="args">The parameters of the clause body.</param>
+            <returns>A reference to this instance after the append operation has completed.</returns>
+        </member>
+        <member name="M:DbExtensions.SqlBuilder.LEFT_JOIN(System.String,System.Object[])">
+            <summary>
+            Appends the LEFT JOIN clause using the provided <paramref name="format"/> string and parameters.
+            </summary>
+            <param name="format">The format string that represents the body of the LEFT JOIN clause.</param>
+            <param name="args">The parameters of the clause body.</param>
+            <returns>A reference to this instance after the append operation has completed.</returns>
+        </member>
+        <member name="M:DbExtensions.SqlBuilder.RIGHT_JOIN(System.String,System.Object[])">
+            <summary>
+            Appends the RIGHT JOIN clause using the provided <paramref name="format"/> string and parameters.
+            </summary>
+            <param name="format">The format string that represents the body of the RIGHT JOIN clause.</param>
+            <param name="args">The parameters of the clause body.</param>
+            <returns>A reference to this instance after the append operation has completed.</returns>
+        </member>
+        <member name="M:DbExtensions.SqlBuilder.INNER_JOIN(System.String,System.Object[])">
+            <summary>
+            Appends the INNER JOIN clause using the provided <paramref name="format"/> string and parameters.
+            </summary>
+            <param name="format">The format string that represents the body of the INNER JOIN clause.</param>
+            <param name="args">The parameters of the clause body.</param>
+            <returns>A reference to this instance after the append operation has completed.</returns>
+        </member>
+        <member name="M:DbExtensions.SqlBuilder.CROSS_JOIN(System.String,System.Object[])">
+            <summary>
+            Appends the CROSS JOIN clause using the provided <paramref name="format"/> string and parameters.
+            </summary>
+            <param name="format">The format string that represents the body of the CROSS JOIN clause.</param>
+            <param name="args">The parameters of the clause body.</param>
+            <returns>A reference to this instance after the append operation has completed.</returns>
+        </member>
+        <member name="M:DbExtensions.SqlBuilder.WHERE">
+            <summary>
+            Sets WHERE as the next clause, to be used by subsequent calls to clause continuation methods,
+            such as <see cref="M:DbExtensions.SqlBuilder._(System.String,System.Object[])"/> and <see cref="M:DbExtensions.SqlBuilder._If(System.Boolean,System.String,System.Object[])"/>.
+            </summary>
+            <returns>A reference to this instance after the operation has completed.</returns>
+        </member>
+        <member name="M:DbExtensions.SqlBuilder.WHERE(System.String,System.Object[])">
+            <summary>
+            Appends the WHERE clause using the provided <paramref name="format"/> string and parameters.
+            </summary>
+            <param name="format">The format string that represents the body of the WHERE clause.</param>
+            <param name="args">The parameters of the clause body.</param>
+            <returns>A reference to this instance after the append operation has completed.</returns>
+        </member>
+        <member name="M:DbExtensions.SqlBuilder.GROUP_BY">
+            <summary>
+            Sets GROUP BY as the next clause, to be used by subsequent calls to clause continuation methods,
+            such as <see cref="M:DbExtensions.SqlBuilder._(System.String,System.Object[])"/> and <see cref="M:DbExtensions.SqlBuilder._If(System.Boolean,System.String,System.Object[])"/>.
+            </summary>
+            <returns>A reference to this instance after the operation has completed.</returns>
+        </member>
+        <member name="M:DbExtensions.SqlBuilder.GROUP_BY(System.String,System.Object[])">
+            <summary>
+            Appends the GROUP BY clause using the provided <paramref name="format"/> string and parameters.
+            </summary>
+            <param name="format">The format string that represents the body of the GROUP BY clause.</param>
+            <param name="args">The parameters of the clause body.</param>
+            <returns>A reference to this instance after the append operation has completed.</returns>
+        </member>
+        <member name="M:DbExtensions.SqlBuilder.HAVING">
+            <summary>
+            Sets HAVING as the next clause, to be used by subsequent calls to clause continuation methods,
+            such as <see cref="M:DbExtensions.SqlBuilder._(System.String,System.Object[])"/> and <see cref="M:DbExtensions.SqlBuilder._If(System.Boolean,System.String,System.Object[])"/>.
+            </summary>
+            <returns>A reference to this instance after the operation has completed.</returns>
+        </member>
+        <member name="M:DbExtensions.SqlBuilder.HAVING(System.String,System.Object[])">
+            <summary>
+            Appends the HAVING clause using the provided <paramref name="format"/> string and parameters.
+            </summary>
+            <param name="format">The format string that represents the body of the HAVING clause.</param>
+            <param name="args">The parameters of the clause body.</param>
+            <returns>A reference to this instance after the append operation has completed.</returns>
+        </member>
+        <member name="M:DbExtensions.SqlBuilder.ORDER_BY">
+            <summary>
+            Sets ORDER BY as the next clause, to be used by subsequent calls to clause continuation methods,
+            such as <see cref="M:DbExtensions.SqlBuilder._(System.String,System.Object[])"/> and <see cref="M:DbExtensions.SqlBuilder._If(System.Boolean,System.String,System.Object[])"/>.
+            </summary>
+            <returns>A reference to this instance after the operation has completed.</returns>
+        </member>
+        <member name="M:DbExtensions.SqlBuilder.ORDER_BY(System.String,System.Object[])">
+            <summary>
+            Appends the ORDER BY clause using the provided <paramref name="format"/> string and parameters.
+            </summary>
+            <param name="format">The format string that represents the body of the ORDER BY clause.</param>
+            <param name="args">The parameters of the clause body.</param>
+            <returns>A reference to this instance after the append operation has completed.</returns>
+        </member>
+        <member name="M:DbExtensions.SqlBuilder.LIMIT">
+            <summary>
+            Sets LIMIT as the next clause, to be used by subsequent calls to clause continuation methods,
+            such as <see cref="M:DbExtensions.SqlBuilder._(System.String,System.Object[])"/> and <see cref="M:DbExtensions.SqlBuilder._If(System.Boolean,System.String,System.Object[])"/>.
+            </summary>
+            <returns>A reference to this instance after the operation has completed.</returns>
+        </member>
+        <member name="M:DbExtensions.SqlBuilder.LIMIT(System.String,System.Object[])">
+            <summary>
+            Appends the LIMIT clause using the provided <paramref name="format"/> string and parameters.
+            </summary>
+            <param name="format">The format string that represents the body of the LIMIT clause.</param>
+            <param name="args">The parameters of the clause body.</param>
+            <returns>A reference to this instance after the append operation has completed.</returns>
+        </member>
+        <member name="M:DbExtensions.SqlBuilder.LIMIT(System.Int32)">
+            <summary>
+            Appends the LIMIT clause using the provided <paramref name="maxRecords"/> parameter.
+            </summary>
+            <param name="maxRecords">The value to use as parameter.</param>
+            <returns>A reference to this instance after the append operation has completed.</returns>
+        </member>
+        <member name="M:DbExtensions.SqlBuilder.OFFSET">
+            <summary>
+            Sets OFFSET as the next clause, to be used by subsequent calls to clause continuation methods,
+            such as <see cref="M:DbExtensions.SqlBuilder._(System.String,System.Object[])"/> and <see cref="M:DbExtensions.SqlBuilder._If(System.Boolean,System.String,System.Object[])"/>.
+            </summary>
+            <returns>A reference to this instance after the operation has completed.</returns>
+        </member>
+        <member name="M:DbExtensions.SqlBuilder.OFFSET(System.String,System.Object[])">
+            <summary>
+            Appends the OFFSET clause using the provided <paramref name="format"/> string and parameters.
+            </summary>
+            <param name="format">The format string that represents the body of the OFFSET clause.</param>
+            <param name="args">The parameters of the clause body.</param>
+            <returns>A reference to this instance after the append operation has completed.</returns>
+        </member>
+        <member name="M:DbExtensions.SqlBuilder.OFFSET(System.Int32)">
+            <summary>
+            Appends the OFFSET clause using the provided <paramref name="startIndex"/> parameter.
+            </summary>
+            <param name="startIndex">The value to use as parameter.</param>
+            <returns>A reference to this instance after the append operation has completed.</returns>
+        </member>
+        <member name="M:DbExtensions.SqlBuilder.UNION">
+            <summary>
+            Appends the UNION clause.
+            </summary>
+            <returns>A reference to this instance after the append operation has completed.</returns>
+        </member>
+        <member name="M:DbExtensions.SqlBuilder.INSERT_INTO(System.String,System.Object[])">
+            <summary>
+            Appends the INSERT INTO clause using the provided <paramref name="format"/> string and parameters.
+            </summary>
+            <param name="format">The format string that represents the body of the INSERT INTO clause.</param>
+            <param name="args">The parameters of the clause body.</param>
+            <returns>A reference to this instance after the append operation has completed.</returns>
+        </member>
+        <member name="M:DbExtensions.SqlBuilder.DELETE_FROM(System.String,System.Object[])">
+            <summary>
+            Appends the DELETE FROM clause using the provided <paramref name="format"/> string and parameters.
+            </summary>
+            <param name="format">The format string that represents the body of the DELETE FROM clause.</param>
+            <param name="args">The parameters of the clause body.</param>
+            <returns>A reference to this instance after the append operation has completed.</returns>
+        </member>
+        <member name="M:DbExtensions.SqlBuilder.UPDATE(System.String,System.Object[])">
+            <summary>
+            Appends the UPDATE clause using the provided <paramref name="format"/> string and parameters.
+            </summary>
+            <param name="format">The format string that represents the body of the UPDATE clause.</param>
+            <param name="args">The parameters of the clause body.</param>
+            <returns>A reference to this instance after the append operation has completed.</returns>
+        </member>
+        <member name="M:DbExtensions.SqlBuilder.SET(System.String,System.Object[])">
+            <summary>
+            Appends the SET clause using the provided <paramref name="format"/> string and parameters.
+            </summary>
+            <param name="format">The format string that represents the body of the SET clause.</param>
+            <param name="args">The parameters of the clause body.</param>
+            <returns>A reference to this instance after the append operation has completed.</returns>
+        </member>
+        <member name="M:DbExtensions.SqlBuilder.VALUES(System.Object[])">
+            <summary>
+            Appends the VALUES clause using the provided parameters.
+            </summary>
+            <param name="args">The parameters of the clause body.</param>
+            <returns>A reference to this instance after the append operation has completed.</returns>
+        </member>
+        <member name="T:DbExtensions.SQL">
+            <summary>
+            Provides a set of static (Shared in Visual Basic) methods to create <see cref="T:DbExtensions.SqlBuilder"/> 
+            instances.
+            </summary>
+        </member>
+        <member name="M:DbExtensions.SQL.WITH(System.String,System.Object[])">
+            <summary>
+            Creates and returns a new <see cref="T:DbExtensions.SqlBuilder"/> initialized by
+            appending the WITH clause using the provided <paramref name="format"/>
+            and <paramref name="args"/>.
+            </summary>
+            <param name="format">The body of the WITH clause.</param>
+            <param name="args">The parameters of the clause body.</param>
+            <returns>
+            A new <see cref="T:DbExtensions.SqlBuilder"/> after calling <see cref="M:DbExtensions.SqlBuilder.WITH(System.String,System.Object[])"/>.
+            </returns>
+        </member>
+        <member name="M:DbExtensions.SQL.WITH(DbExtensions.SqlBuilder,System.String)">
+            <summary>
+            Creates and returns a new <see cref="T:DbExtensions.SqlBuilder"/> initialized by
+            appending the WITH clause using the provided <paramref name="subQuery"/>
+            and <paramref name="alias"/>.
+            </summary>
+            <param name="subQuery">The sub-query to use as the body of the WITH clause.</param>
+            <param name="alias">The alias of the sub-query.</param>
+            <returns>
+            A new <see cref="T:DbExtensions.SqlBuilder"/> after calling <see cref="M:DbExtensions.SqlBuilder.WITH(DbExtensions.SqlBuilder,System.String)"/>.
+            </returns>
+        </member>
+        <member name="M:DbExtensions.SQL.SELECT(System.String,System.Object[])">
+            <summary>
+            Creates and returns a new <see cref="T:DbExtensions.SqlBuilder"/> initialized by
+            appending the SELECT clause using the provided <paramref name="format"/>
+            and <paramref name="args"/>.
+            </summary>
+            <param name="format">The body of the SELECT clause.</param>
+            <param name="args">The parameters of the clause body.</param>
+            <returns>
+            A new <see cref="T:DbExtensions.SqlBuilder"/> after calling <see cref="M:DbExtensions.SqlBuilder.SELECT(System.String,System.Object[])"/>.
+            </returns>
+        </member>
+        <member name="M:DbExtensions.SQL.INSERT_INTO(System.String,System.Object[])">
+            <summary>
+            Creates and returns a new <see cref="T:DbExtensions.SqlBuilder"/> initialized by
+            appending the INSERT INTO clause using the provided <paramref name="format"/>
+            and <paramref name="args"/>.
+            </summary>
+            <param name="format">The body of the INSERT INTO clause.</param>
+            <param name="args">The parameters of the clause body.</param>
+            <returns>
+            A new <see cref="T:DbExtensions.SqlBuilder"/> after calling <see cref="M:DbExtensions.SqlBuilder.INSERT_INTO(System.String,System.Object[])"/>.
+            </returns>
+        </member>
+        <member name="M:DbExtensions.SQL.UPDATE(System.String,System.Object[])">
+            <summary>
+            Creates and returns a new <see cref="T:DbExtensions.SqlBuilder"/> initialized by
+            appending the UPDATE clause using the provided <paramref name="format"/>
+            and <paramref name="args"/>.
+            </summary>
+            <param name="format">The body of the UPDATE clause.</param>
+            <param name="args">The parameters of the clause body.</param>
+            <returns>
+            A new <see cref="T:DbExtensions.SqlBuilder"/> after calling <see cref="M:DbExtensions.SqlBuilder.UPDATE(System.String,System.Object[])"/>.
+            </returns>
+        </member>
+        <member name="M:DbExtensions.SQL.DELETE_FROM(System.String,System.Object[])">
+            <summary>
+            Creates and returns a new <see cref="T:DbExtensions.SqlBuilder"/> initialized by
+            appending the DELETE FROM clause using the provided <paramref name="format"/>
+            and <paramref name="args"/>.
+            </summary>
+            <param name="format">The body of the DELETE FROM clause.</param>
+            <param name="args">The parameters of the clause body.</param>
+            <returns>
+            A new <see cref="T:DbExtensions.SqlBuilder"/> after calling <see cref="M:DbExtensions.SqlBuilder.DELETE_FROM(System.String,System.Object[])"/>.
+            </returns>
+        </member>
+        <member name="M:DbExtensions.SQL.List(System.Collections.IEnumerable)">
+            <inheritdoc cref="M:DbExtensions.SQL.List(System.Object[])"/>
+        </member>
+        <member name="M:DbExtensions.SQL.List(System.Object[])">
+            <summary>
+            Returns a special parameter value that is expanded into a list of comma-separated placeholder items.
+            </summary>
+            <param name="values">The values to expand into a list.</param>
+            <returns>A special object to be used as parameter in <see cref="T:DbExtensions.SqlBuilder"/>.</returns>
+            <remarks>
+            <para>
+            For example:
+            </para>
+            <code>
+            var query = SQL
+               .SELECT("{0} IN ({1})", "a", SQL.List("a", "b", "c"));
+            
+            Console.WriteLine(query.ToString());
+            </code>
+            <para>
+            The above code outputs: <c>SELECT {0} IN ({1}, {2}, {3})</c>
+            </para>
+            </remarks>
+        </member>
+        <member name="M:DbExtensions.SQL.Equals(System.Object,System.Object)">
+            <exclude/>
+        </member>
+        <member name="M:DbExtensions.SQL.ReferenceEquals(System.Object,System.Object)">
+            <exclude/>
+        </member>
+        <member name="T:DbExtensions.SqlSet`1">
+            <summary>
+            Represents an immutable, connected SQL query that maps to <typeparamref name="TResult"/> objects.
+            This class cannot be instantiated, to get an instance use the <see cref="M:DbExtensions.Database.From``1(System.String)"/> method.
+            </summary>
+            <typeparam name="TResult">The type of objects to map the results to.</typeparam>
+            <inheritdoc select="remarks"/>
+        </member>
+        <member name="M:DbExtensions.SqlSet`1.AsEnumerable">
+            <summary>
+            Gets all <typeparamref name="TResult"/> objects in the set. The query is deferred-executed.
+            </summary>
+            <returns>All <typeparamref name="TResult"/> objects in the set.</returns>
+        </member>
+        <member name="M:DbExtensions.SqlSet`1.Cast``1">
+            <summary>
+            Casts the elements of the set to the specified type.
+            </summary>
+            <typeparam name="T">The type to cast the elements of the set to.</typeparam>
+            <returns>A new <see cref="T:DbExtensions.SqlSet`1"/> that contains each element of the current set cast to the specified type.</returns>
+        </member>
+        <member name="M:DbExtensions.SqlSet`1.Cast(System.Type)">
+            <inheritdoc cref="M:DbExtensions.SqlSet.Cast(System.Type)"/>
+        </member>
+        <member name="M:DbExtensions.SqlSet`1.First">
+            <inheritdoc cref="M:DbExtensions.SqlSet.First"/>
+        </member>
+        <member name="M:DbExtensions.SqlSet`1.First(System.String,System.Object[])">
+            <inheritdoc cref="M:DbExtensions.SqlSet.First(System.String,System.Object[])"/>
+        </member>
+        <member name="M:DbExtensions.SqlSet`1.FirstOrDefault">
+            <inheritdoc cref="M:DbExtensions.SqlSet.FirstOrDefault"/>
+        </member>
+        <member name="M:DbExtensions.SqlSet`1.FirstOrDefault(System.String,System.Object[])">
+            <inheritdoc cref="M:DbExtensions.SqlSet.FirstOrDefault(System.String,System.Object[])"/>
+        </member>
+        <member name="M:DbExtensions.SqlSet`1.GetEnumerator">
+            <summary>
+            Returns an enumerator that iterates through the set.
+            </summary>
+            <returns>A <see cref="T:System.Collections.Generic.IEnumerator`1"/> for the set.</returns>
+        </member>
+        <member name="M:DbExtensions.SqlSet`1.OrderBy(System.String,System.Object[])">
+            <inheritdoc cref="M:DbExtensions.SqlSet.OrderBy(System.String,System.Object[])"/>
+            <returns>A new <see cref="T:DbExtensions.SqlSet`1"/> whose elements are sorted according to <paramref name="columnList"/>.</returns>
+        </member>
+        <member name="M:DbExtensions.SqlSet`1.Single">
+            <inheritdoc cref="M:DbExtensions.SqlSet.Single"/>
+        </member>
+        <member name="M:DbExtensions.SqlSet`1.Single(System.String,System.Object[])">
+            <inheritdoc cref="M:DbExtensions.SqlSet.Single(System.String,System.Object[])"/>
+        </member>
+        <member name="M:DbExtensions.SqlSet`1.SingleOrDefault">
+            <inheritdoc cref="M:DbExtensions.SqlSet.SingleOrDefault"/>
+        </member>
+        <member name="M:DbExtensions.SqlSet`1.SingleOrDefault(System.String,System.Object[])">
+            <inheritdoc cref="M:DbExtensions.SqlSet.SingleOrDefault(System.String,System.Object[])"/>
+        </member>
+        <member name="M:DbExtensions.SqlSet`1.Skip(System.Int32)">
+            <inheritdoc cref="M:DbExtensions.SqlSet.Skip(System.Int32)"/>
+            <returns>A new <see cref="T:DbExtensions.SqlSet`1"/> that contains the elements that occur after the specified index in the current set.</returns>
+        </member>
+        <member name="M:DbExtensions.SqlSet`1.Take(System.Int32)">
+            <inheritdoc cref="M:DbExtensions.SqlSet.Take(System.Int32)"/>
+            <returns>A new <see cref="T:DbExtensions.SqlSet`1"/> that contains the specified number of elements from the start of the current set.</returns>
+        </member>
+        <member name="M:DbExtensions.SqlSet`1.ToArray">
+            <inheritdoc cref="M:DbExtensions.SqlSet.ToArray"/>
+        </member>
+        <member name="M:DbExtensions.SqlSet`1.ToList">
+            <summary>
+            Creates a List&lt;TResult> from the set.
+            </summary>
+            <returns>A List&lt;TResult> that contains elements from the set.</returns>
+        </member>
+        <member name="M:DbExtensions.SqlSet`1.Where(System.String,System.Object[])">
+            <inheritdoc cref="M:DbExtensions.SqlSet.Where(System.String,System.Object[])"/>
+            <returns>A new <see cref="T:DbExtensions.SqlSet`1"/> that contains elements from the current set that satisfy the condition.</returns>
+        </member>
+        <member name="M:DbExtensions.SqlSet`1.Contains(System.Object)">
+            <inheritdoc cref="M:DbExtensions.SqlSet.Contains(System.Object)"/>
+        </member>
+        <member name="M:DbExtensions.SqlSet`1.Contains(`0)">
+            <inheritdoc cref="M:DbExtensions.SqlSet.Contains(System.Object)"/>
+        </member>
+        <member name="M:DbExtensions.SqlSet`1.Find(System.Object)">
+            <inheritdoc cref="M:DbExtensions.SqlSet.Find(System.Object)"/>
+        </member>
+        <member name="M:DbExtensions.SqlSet`1.Include(System.String)">
+            <inheritdoc cref="M:DbExtensions.SqlSet.Include(System.String)"/>
+            <returns>A new <see cref="T:DbExtensions.SqlSet`1"/> with the defined query path.</returns>
+        </member>
+        <member name="T:DbExtensions.SqlTable">
+            <summary>
+            A non-generic version of <see cref="T:DbExtensions.SqlTable`1"/> which can be used when the type of the entity is not known at build time.
+            This class cannot be instantiated, to get an instance use the <see cref="M:DbExtensions.Database.Table(System.Type)"/> method.
+            </summary>
+        </member>
+        <member name="P:DbExtensions.SqlTable.CommandBuilder">
+            <summary>
+            Gets a <see cref="T:DbExtensions.SqlCommandBuilder`1"/> object for the current table.
+            </summary>
+        </member>
+        <member name="M:DbExtensions.SqlTable.Cast``1">
+            <summary>
+            Casts the current <see cref="T:DbExtensions.SqlTable"/> to the generic <see cref="T:DbExtensions.SqlTable`1"/> instance.
+            </summary>
+            <typeparam name="TEntity">The type of the entity.</typeparam>
+            <returns>The <see cref="T:DbExtensions.SqlTable`1"/> instance for <typeparamref name="TEntity"/>.</returns>
+            <exception cref="T:System.InvalidOperationException">The specified <typeparamref name="TEntity"/> is not valid for this instance.</exception>
+        </member>
+        <member name="M:DbExtensions.SqlTable.Cast(System.Type)">
+            <inheritdoc cref="M:DbExtensions.SqlSet.Cast(System.Type)"/>
+        </member>
+        <member name="M:DbExtensions.SqlTable.Add(System.Object)">
+            <inheritdoc cref="M:DbExtensions.SqlTable`1.Add(`0)"/>
+        </member>
+        <member name="M:DbExtensions.SqlTable.AddRange(System.Collections.Generic.IEnumerable{System.Object})">
+            <inheritdoc cref="M:DbExtensions.SqlTable`1.AddRange(System.Collections.Generic.IEnumerable{`0})"/>
+        </member>
+        <member name="M:DbExtensions.SqlTable.AddRange(System.Object[])">
+            <inheritdoc cref="M:DbExtensions.SqlTable`1.AddRange(`0[])"/>
+        </member>
+        <member name="M:DbExtensions.SqlTable.Update(System.Object)">
+            <inheritdoc cref="M:DbExtensions.SqlTable`1.Update(`0)"/>
+        </member>
+        <member name="M:DbExtensions.SqlTable.Update(System.Object,System.Object)">
+            <inheritdoc cref="M:DbExtensions.SqlTable`1.Update(`0,System.Object)"/>
+        </member>
+        <member name="M:DbExtensions.SqlTable.UpdateRange(System.Collections.Generic.IEnumerable{System.Object})">
+            <inheritdoc cref="M:DbExtensions.SqlTable`1.UpdateRange(System.Collections.Generic.IEnumerable{`0})"/>
+        </member>
+        <member name="M:DbExtensions.SqlTable.UpdateRange(System.Object[])">
+            <inheritdoc cref="M:DbExtensions.SqlTable`1.UpdateRange(`0[])"/>
+        </member>
+        <member name="M:DbExtensions.SqlTable.Remove(System.Object)">
+            <inheritdoc cref="M:DbExtensions.SqlTable`1.Remove(`0)"/>
+        </member>
+        <member name="M:DbExtensions.SqlTable.RemoveKey(System.Object)">
+            <inheritdoc cref="M:DbExtensions.SqlTable`1.RemoveKey(System.Object)"/>
+        </member>
+        <member name="M:DbExtensions.SqlTable.RemoveRange(System.Collections.Generic.IEnumerable{System.Object})">
+            <inheritdoc cref="M:DbExtensions.SqlTable`1.RemoveRange(System.Collections.Generic.IEnumerable{`0})"/>
+        </member>
+        <member name="M:DbExtensions.SqlTable.RemoveRange(System.Object[])">
+            <inheritdoc cref="M:DbExtensions.SqlTable`1.RemoveRange(`0[])"/>
+        </member>
+        <member name="M:DbExtensions.SqlTable.Contains(System.Object)">
+            <inheritdoc cref="M:DbExtensions.SqlSet.Contains(System.Object)" select="*[not(self::remarks)]"/>
+        </member>
+        <member name="M:DbExtensions.SqlTable.ContainsKey(System.Object)">
+            <inheritdoc cref="M:DbExtensions.SqlSet.ContainsKey(System.Object)" select="*[not(self::remarks)]"/>
+        </member>
+        <member name="M:DbExtensions.SqlTable.Refresh(System.Object)">
+            <inheritdoc cref="M:DbExtensions.SqlTable`1.Refresh(`0)"/>
+        </member>
+        <member name="T:DbExtensions.SqlTable`1">
+            <summary>
+            A <see cref="T:DbExtensions.SqlSet`1"/> that provides CRUD (Create, Read, Update, Delete)
+            operations for annotated classes. 
+            This class cannot be instantiated, to get an instance use the <see cref="M:DbExtensions.Database.Table``1"/> method.
+            </summary>
+            <typeparam name="TEntity">The type of the entity.</typeparam>
+        </member>
+        <member name="P:DbExtensions.SqlTable`1.CommandBuilder">
+            <summary>
+            Gets a <see cref="T:DbExtensions.SqlCommandBuilder`1"/> object for the current table.
+            </summary>
+        </member>
+        <member name="M:DbExtensions.SqlTable`1.Add(`0)">
+            <summary>
+            Recursively executes INSERT commands for the specified <paramref name="entity"/> and all its
+            one-to-one and one-to-many associations.
+            </summary>
+            <param name="entity">
+            The object whose INSERT command is to be executed. This parameter is named entity for consistency
+            with the other CRUD methods, but in this case it doesn't need to be an actual entity, which means it doesn't
+            need to have a primary key.
+            </param>
+        </member>
+        <member name="M:DbExtensions.SqlTable`1.AddRange(System.Collections.Generic.IEnumerable{`0})">
+            <summary>
+            Recursively executes INSERT commands for the specified <paramref name="entities"/> and all their
+            one-to-one and one-to-many associations.
+            </summary>
+            <param name="entities">The entities whose INSERT commands are to be executed.</param>
+        </member>
+        <member name="M:DbExtensions.SqlTable`1.AddRange(`0[])">
+            <inheritdoc cref="M:DbExtensions.SqlTable`1.AddRange(System.Collections.Generic.IEnumerable{`0})"/>
+        </member>
+        <member name="M:DbExtensions.SqlTable`1.Update(`0)">
+            <summary>
+            Executes an UPDATE command for the specified <paramref name="entity"/>.
+            </summary>
+            <param name="entity">The entity whose UPDATE command is to be executed.</param>
+        </member>
+        <member name="M:DbExtensions.SqlTable`1.Update(`0,System.Object)">
+            <inheritdoc cref="M:DbExtensions.SqlTable`1.Update(`0)"/>
+            <param name="originalId">The original primary key value.</param>
+            <remarks>This overload is helpful when the entity uses an assigned primary key.</remarks>
+        </member>
+        <member name="M:DbExtensions.SqlTable`1.UpdateRange(System.Collections.Generic.IEnumerable{`0})">
+            <summary>
+            Executes UPDATE commands for the specified <paramref name="entities"/>.
+            </summary>
+            <param name="entities">The entities whose UPDATE commands are to be executed.</param>
+        </member>
+        <member name="M:DbExtensions.SqlTable`1.UpdateRange(`0[])">
+            <summary>
+            Executes UPDATE commands for the specified <paramref name="entities"/>.
+            </summary>
+            <param name="entities">The entities whose UPDATE commands are to be executed.</param>
+        </member>
+        <member name="M:DbExtensions.SqlTable`1.Remove(`0)">
+            <summary>
+            Executes a DELETE command for the specified <paramref name="entity"/>.
+            </summary>
+            <param name="entity">The entity whose DELETE command is to be executed.</param>
+        </member>
+        <member name="M:DbExtensions.SqlTable`1.RemoveKey(System.Object)">
+            <summary>
+            Executes a DELETE command for the entity
+            whose primary key matches the <paramref name="id"/> parameter.
+            </summary>
+            <param name="id">The primary key value.</param>
+        </member>
+        <member name="M:DbExtensions.SqlTable`1.RemoveRange(System.Collections.Generic.IEnumerable{`0})">
+            <summary>
+            Executes DELETE commands for the specified <paramref name="entities"/>.
+            </summary>
+            <param name="entities">The entities whose DELETE commands are to be executed.</param>
+        </member>
+        <member name="M:DbExtensions.SqlTable`1.RemoveRange(`0[])">
+            <summary>
+            Executes DELETE commands for the specified <paramref name="entities"/>.
+            </summary>
+            <param name="entities">The entities whose DELETE commands are to be executed.</param>
+        </member>
+        <member name="M:DbExtensions.SqlTable`1.Contains(`0)">
+            <inheritdoc cref="M:DbExtensions.SqlSet`1.Contains(`0)" select="*[not(self::remarks)]"/>
+        </member>
+        <member name="M:DbExtensions.SqlTable`1.ContainsKey(System.Object)">
+            <inheritdoc cref="M:DbExtensions.SqlSet.ContainsKey(System.Object)" select="*[not(self::remarks)]"/>
+        </member>
+        <member name="M:DbExtensions.SqlTable`1.Refresh(`0)">
+            <summary>
+            Sets all column members of <paramref name="entity"/> to their most current persisted value.
+            </summary>
+            <param name="entity">The entity to refresh.</param>
+        </member>
+        <member name="T:DbExtensions.SqlCommandBuilder`1">
+            <summary>
+            Generates SQL commands for annotated classes.
+            This class cannot be instantiated, to get an instance use the <see cref="P:DbExtensions.SqlTable`1.CommandBuilder"/>
+            or <see cref="P:DbExtensions.SqlTable.CommandBuilder"/> properties.
+            </summary>
+            <typeparam name="TEntity">The type of the entity to generate commands for.</typeparam>
+        </member>
+        <member name="M:DbExtensions.SqlCommandBuilder`1.BuildSelectClause">
+            <summary>
+            Creates and returns a SELECT query for the current table
+            that includes the SELECT clause only.
+            </summary>
+            <returns>The SELECT query for the current table.</returns>
+        </member>
+        <member name="M:DbExtensions.SqlCommandBuilder`1.BuildSelectClause(System.String)">
+            <summary>
+            Creates and returns a SELECT query for the current table
+            that includes the SELECT clause only. All column names are qualified with the provided
+            <paramref name="tableAlias"/>.
+            </summary>
+            <param name="tableAlias">The table alias.</param>
+            <returns>The SELECT query for the current table.</returns>
+        </member>
+        <member name="M:DbExtensions.SqlCommandBuilder`1.BuildSelectClause(System.Collections.Generic.IEnumerable{DbExtensions.Metadata.MetaDataMember},System.String)">
+            <summary>
+            Creates and returns a SELECT query using the specified <paramref name="selectMembers"/>
+            that includes the SELECT clause only. All column names are qualified with the provided
+            <paramref name="tableAlias"/>.
+            </summary>
+            <param name="selectMembers">The members to use in the SELECT clause.</param>
+            <param name="tableAlias">The table alias.</param>
+            <returns>The SELECT query.</returns>
+        </member>
+        <member name="M:DbExtensions.SqlCommandBuilder`1.BuildSelectStatement">
+            <summary>
+            Creates and returns a SELECT query for the current table
+            that includes the SELECT and FROM clauses.
+            </summary>
+            <returns>The SELECT query for the current table.</returns>
+        </member>
+        <member name="M:DbExtensions.SqlCommandBuilder`1.BuildSelectStatement(System.String)">
+            <summary>
+            Creates and returns a SELECT query for the current table
+            that includes the SELECT and FROM clauses. All column names are qualified with the provided
+            <paramref name="tableAlias"/>.
+            </summary>
+            <param name="tableAlias">The table alias.</param>
+            <returns>The SELECT query for the current table.</returns>
+        </member>
+        <member name="M:DbExtensions.SqlCommandBuilder`1.BuildInsertStatementForEntity(`0)">
+            <summary>
+            Creates and returns an INSERT command for the specified <paramref name="entity"/>.
+            </summary>
+            <param name="entity">
+            The object whose INSERT command is to be created. This parameter is named entity for consistency
+            with the other CRUD methods, but in this case it doesn't need to be an actual entity, which means it doesn't
+            need to have a primary key.
+            </param>
+            <returns>The INSERT command for <paramref name="entity"/>.</returns>
+        </member>
+        <member name="M:DbExtensions.SqlCommandBuilder`1.BuildUpdateClause">
+            <summary>
+            Creates and returns an UPDATE command for the current table
+            that includes the UPDATE clause.
+            </summary>
+            <returns>The UPDATE command for the current table.</returns>
+        </member>
+        <member name="M:DbExtensions.SqlCommandBuilder`1.BuildUpdateStatementForEntity(`0)">
+            <summary>
+            Creates and returns an UPDATE command for the specified <paramref name="entity"/>.
+            </summary>
+            <param name="entity">The entity whose UPDATE command is to be created.</param>
+            <returns>The UPDATE command for <paramref name="entity"/>.</returns>
+        </member>
+        <member name="M:DbExtensions.SqlCommandBuilder`1.BuildUpdateStatementForEntity(`0,System.Object)">
+            <inheritdoc cref="M:DbExtensions.SqlCommandBuilder`1.BuildUpdateStatementForEntity(`0)"/>
+            <param name="originalId">The original primary key value.</param>
+            <remarks>This overload is helpful when the entity uses an assigned primary key.</remarks>
+        </member>
+        <member name="M:DbExtensions.SqlCommandBuilder`1.BuildDeleteStatement">
+            <summary>
+            Creates and returns a DELETE command for the current table
+            that includes the DELETE and FROM clauses.
+            </summary>
+            <returns>The DELETE command for the current table.</returns>
+        </member>
+        <member name="M:DbExtensions.SqlCommandBuilder`1.BuildDeleteStatementForEntity(`0)">
+            <summary>
+            Creates and returns a DELETE command for the specified <paramref name="entity"/>.
+            </summary>
+            <param name="entity">The entity whose DELETE command is to be created.</param>
+            <returns>The DELETE command for <paramref name="entity"/>.</returns>
+        </member>
+        <member name="M:DbExtensions.SqlCommandBuilder`1.BuildDeleteStatementForKey(System.Object)">
+            <summary>
+            Creates and returns a DELETE command for the entity
+            whose primary key matches the <paramref name="id"/> parameter.
+            </summary>
+            <param name="id">The primary key value.</param>
+            <returns>The DELETE command the entity whose primary key matches the <paramref name="id"/> parameter.</returns>
+        </member>
+        <member name="M:DbExtensions.SqlCommandBuilder`1.Equals(System.Object)">
+            <exclude/>
+        </member>
+        <member name="M:DbExtensions.SqlCommandBuilder`1.GetHashCode">
+            <exclude/>
+        </member>
+        <member name="M:DbExtensions.SqlCommandBuilder`1.GetType">
+            <exclude/>
+        </member>
+        <member name="M:DbExtensions.SqlCommandBuilder`1.ToString">
+            <exclude/>
+        </member>
+    </members>
+</doc>

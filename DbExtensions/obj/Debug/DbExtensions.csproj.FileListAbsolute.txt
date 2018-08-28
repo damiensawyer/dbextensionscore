@@ -1,0 +1,6 @@
+C:\temp\code\DbExtensions\src\DbExtensions\bin\Debug\DbExtensions.xml
+C:\temp\code\DbExtensions\src\DbExtensions\bin\Debug\DbExtensions.dll
+C:\temp\code\DbExtensions\src\DbExtensions\bin\Debug\DbExtensions.pdb
+C:\temp\code\DbExtensions\src\DbExtensions\obj\Debug\DbExtensions.csproj.CoreCompileInputs.cache
+C:\temp\code\DbExtensions\src\DbExtensions\obj\Debug\DbExtensions.dll
+C:\temp\code\DbExtensions\src\DbExtensions\obj\Debug\DbExtensions.pdb

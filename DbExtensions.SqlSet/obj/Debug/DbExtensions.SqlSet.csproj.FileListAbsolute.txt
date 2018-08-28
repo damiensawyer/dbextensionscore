@@ -1,0 +1,5 @@
+C:\temp\code\DbExtensions\src\DbExtensions.SqlSet\bin\Debug\DbExtensions.SqlSet.dll
+C:\temp\code\DbExtensions\src\DbExtensions.SqlSet\bin\Debug\DbExtensions.SqlSet.pdb
+C:\temp\code\DbExtensions\src\DbExtensions.SqlSet\obj\Debug\DbExtensions.SqlSet.csproj.CoreCompileInputs.cache
+C:\temp\code\DbExtensions\src\DbExtensions.SqlSet\obj\Debug\DbExtensions.SqlSet.dll
+C:\temp\code\DbExtensions\src\DbExtensions.SqlSet\obj\Debug\DbExtensions.SqlSet.pdb

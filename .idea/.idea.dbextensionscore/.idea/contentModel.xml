@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ContentModelStore">
+    <e p="\app" t="IncludeRecursive" />
+    <e p="\c727d85d" t="IncludeRecursive" />
+    <e p="C:\temp\code\dbextensionscore" t="IncludeRecursive">
+      <e p="bin" t="ExcludeRecursive" />
+      <e p="DbExtensions" t="Include">
+        <e p="Attributes.cs" t="Include" />
+        <e p="bin" t="Include">
+          <e p="Debug" t="Include">
+            <e p="DbExtensions.dll" t="Include" />
+            <e p="DbExtensions.pdb" t="Include" />
+            <e p="DbExtensions.xml" t="Include" />
+          </e>
+        </e>
+        <e p="Database.cs" t="Include" />
+        <e p="DynamicMapper.cs" t="Include" />
+        <e p="Extensions.cs" t="Include" />
+        <e p="Mapper.cs" t="Include" />
+        <e p="Metadata" t="Include">
+          <e p="Accessors.cs" t="Include" />
+          <e p="AttributedMetaModel.cs" t="Include" />
+          <e p="Error.cs" t="Include" />
+          <e p="MappingSource.cs" t="Include" />
+          <e p="MappingSystem.cs" t="Include" />
+          <e p="MetaModel.cs" t="Include" />
+          <e p="TypeSystem.cs" t="Include" />
+        </e>
+        <e p="obj" t="Include">
+          <e p="Debug" t="Include">
+            <e p="DbExtensions.csproj.CoreCompileInputs.cache" t="Include" />
+            <e p="DbExtensions.csproj.FileListAbsolute.txt" t="Include" />
+            <e p="DbExtensions.dll" t="Include" />
+            <e p="DbExtensions.pdb" t="Include" />
+          </e>
+        </e>
+        <e p="PocoMapper.cs" t="Include" />
+        <e p="Properties" t="Include" />
+        <e p="SqlBuilder.cs" t="Include" />
+        <e p="SqlSet.cs" t="Include" />
+        <e p="SqlTable.cs" t="Include" />
+      </e>
+      <e p="DbExtensions.netstd" t="Include">
+        <e p="bin" t="Include">
+          <e p="Debug" t="Include">
+            <e p="DbExtensions.1.0.0.nupkg" t="Include" />
+            <e p="netstandard2.0" t="Include">
+              <e p="DbExtensions.deps.json" t="Include" />
+              <e p="DbExtensions.dll" t="Include" />
+              <e p="DbExtensions.pdb" t="Include" />
+            </e>
+          </e>
+        </e>
+        <e p="obj" t="Include">
+          <e p="DbExtensions.netstd.csproj.nuget.cache" t="Include" />
+          <e p="DbExtensions.netstd.csproj.nuget.g.props" t="Include" />
+          <e p="DbExtensions.netstd.csproj.nuget.g.targets" t="Include" />
+          <e p="Debug" t="Include">
+            <e p="DbExtensions.1.0.0.nuspec" t="Include" />
+            <e p="netstandard2.0" t="Include">
+              <e p="DbExtensions.dll" t="Include" />
+              <e p="DbExtensions.netstd.csproj.CoreCompileInputs.cache" t="Include" />
+              <e p="DbExtensions.netstd.csproj.FileListAbsolute.txt" t="Include" />
+              <e p="DbExtensions.pdb" t="Include" />
+            </e>
+          </e>
+          <e p="project.assets.json" t="Include" />
+        </e>
+      </e>
+      <e p="DbExtensions.SqlBuilder" t="Include">
+        <e p="bin" t="Include">
+          <e p="Debug" t="Include">
+            <e p="DbExtensions.SqlBuilder.dll" t="Include" />
+            <e p="DbExtensions.SqlBuilder.pdb" t="Include" />
+          </e>
+        </e>
+        <e p="obj" t="Include">
+          <e p="Debug" t="Include">
+            <e p="DbExtensions.SqlBuilder.csproj.CoreCompileInputs.cache" t="Include" />
+            <e p="DbExtensions.SqlBuilder.csproj.FileListAbsolute.txt" t="Include" />
+            <e p="DbExtensions.SqlBuilder.dll" t="Include" />
+            <e p="DbExtensions.SqlBuilder.pdb" t="Include" />
+          </e>
+        </e>
+        <e p="Properties" t="Include">
+          <e p="AssemblyInfo.cs" t="Include" />
+        </e>
+        <e p="README.md" t="Include" />
+      </e>
+      <e p="DbExtensions.SqlSet" t="Include">
+        <e p="bin" t="Include">
+          <e p="Debug" t="Include">
+            <e p="DbExtensions.SqlSet.dll" t="Include" />
+            <e p="DbExtensions.SqlSet.pdb" t="Include" />
+          </e>
+        </e>
+        <e p="obj" t="Include">
+          <e p="Debug" t="Include">
+            <e p="DbExtensions.SqlSet.csproj.CoreCompileInputs.cache" t="Include" />
+            <e p="DbExtensions.SqlSet.csproj.FileListAbsolute.txt" t="Include" />
+            <e p="DbExtensions.SqlSet.dll" t="Include" />
+            <e p="DbExtensions.SqlSet.pdb" t="Include" />
+          </e>
+        </e>
+        <e p="Properties" t="Include" />
+        <e p="README.md" t="Include" />
+      </e>
+      <e p="dbextensionscore.csproj" t="IncludeRecursive" />
+      <e p="obj" t="ExcludeRecursive">
+        <e p="Debug" t="Include">
+          <e p="netcoreapp2.0" t="Include">
+            <e p="dbextensionscore.AssemblyInfo.cs" t="Include" />
+          </e>
+        </e>
+      </e>
+      <e p="packages" t="ExcludeRecursive" />
+    </e>
+    <e p="C:\Users\damie\.Rider2018.2\config\consoles\db" t="IncludeRecursive" />
+    <e p="C:\Users\damie\.Rider2018.2\config\extensions" t="IncludeRecursive" />
+    <e p="C:\Users\damie\.Rider2018.2\config\scratches" t="IncludeRecursive" />
+    <e p="C:\Users\damie\.Rider2018.2\system\extResources" t="IncludeRecursive" />
+    <e p="C:\Users\damie\.Rider2018.2\system\resharper-host\local\Transient\ReSharperHost\v182\SolutionCaches\_dbextensionscore.-34265782.00" t="ExcludeRecursive" />
+  </component>
+</project>

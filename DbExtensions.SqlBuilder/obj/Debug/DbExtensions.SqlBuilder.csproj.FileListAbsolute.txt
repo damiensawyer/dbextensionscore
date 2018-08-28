@@ -1,0 +1,5 @@
+C:\temp\code\DbExtensions\src\DbExtensions.SqlBuilder\bin\Debug\DbExtensions.SqlBuilder.dll
+C:\temp\code\DbExtensions\src\DbExtensions.SqlBuilder\bin\Debug\DbExtensions.SqlBuilder.pdb
+C:\temp\code\DbExtensions\src\DbExtensions.SqlBuilder\obj\Debug\DbExtensions.SqlBuilder.csproj.CoreCompileInputs.cache
+C:\temp\code\DbExtensions\src\DbExtensions.SqlBuilder\obj\Debug\DbExtensions.SqlBuilder.dll
+C:\temp\code\DbExtensions\src\DbExtensions.SqlBuilder\obj\Debug\DbExtensions.SqlBuilder.pdb

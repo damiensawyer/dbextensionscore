@@ -1,9 +1,8 @@
-C:\temp\code\dbextensionscore\obj\Debug\netcoreapp2.0\dbextensionscore.csprojAssemblyReference.cache
-C:\temp\code\dbextensionscore\obj\Debug\netcoreapp2.0\dbextensionscore.csproj.CoreCompileInputs.cache
-C:\temp\code\dbextensionscore\obj\Debug\netcoreapp2.0\dbextensionscore.AssemblyInfoInputs.cache
-C:\temp\code\dbextensionscore\obj\Debug\netcoreapp2.0\dbextensionscore.AssemblyInfo.cs
 C:\temp\code\dbextensionscore\bin\Debug\netcoreapp2.0\dbextensionscore.deps.json
 C:\temp\code\dbextensionscore\bin\Debug\netcoreapp2.0\dbextensionscore.dll
 C:\temp\code\dbextensionscore\bin\Debug\netcoreapp2.0\dbextensionscore.pdb
+C:\temp\code\dbextensionscore\obj\Debug\netcoreapp2.0\dbextensionscore.csproj.CoreCompileInputs.cache
+C:\temp\code\dbextensionscore\obj\Debug\netcoreapp2.0\dbextensionscore.AssemblyInfoInputs.cache
+C:\temp\code\dbextensionscore\obj\Debug\netcoreapp2.0\dbextensionscore.AssemblyInfo.cs
 C:\temp\code\dbextensionscore\obj\Debug\netcoreapp2.0\dbextensionscore.dll
 C:\temp\code\dbextensionscore\obj\Debug\netcoreapp2.0\dbextensionscore.pdb

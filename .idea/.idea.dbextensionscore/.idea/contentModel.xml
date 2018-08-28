@@ -4,6 +4,7 @@
     <e p="\app" t="IncludeRecursive" />
     <e p="\c727d85d" t="IncludeRecursive" />
     <e p="C:\temp\code\dbextensionscore" t="IncludeRecursive">
+      <e p=".gitignore" t="Include" />
       <e p="bin" t="ExcludeRecursive" />
       <e p="DbExtensions" t="Include">
         <e p="Attributes.cs" t="Include" />
@@ -36,7 +37,6 @@
           </e>
         </e>
         <e p="PocoMapper.cs" t="Include" />
-        <e p="Properties" t="Include" />
         <e p="SqlBuilder.cs" t="Include" />
         <e p="SqlSet.cs" t="Include" />
         <e p="SqlTable.cs" t="Include" />
@@ -103,13 +103,12 @@
             <e p="DbExtensions.SqlSet.pdb" t="Include" />
           </e>
         </e>
-        <e p="Properties" t="Include" />
         <e p="README.md" t="Include" />
       </e>
       <e p="dbextensionscore.csproj" t="IncludeRecursive" />
       <e p="obj" t="ExcludeRecursive">
         <e p="Debug" t="Include">
-          <e p="netcoreapp2.0" t="Include">
+          <e p="netstandard2.0" t="Include">
             <e p="dbextensionscore.AssemblyInfo.cs" t="Include" />
           </e>
         </e>
